@@ -20,7 +20,7 @@ class ListingCreator
     "gottarent.com"      => "GottaRent",
     "liv.rent"           => "Liv.rent",
     "jumbo.ca"           => "Jumbo",
-    "marketplace.facebook.com" => "Facebook Marketplace",
+    "marketplace.facebook.com" => "Facebook Marketplace"
   }.freeze
 
   def self.create(params)
@@ -87,11 +87,11 @@ class ListingCreator
           fallback_to_paste: true
         )
       end
-      [fetch_result.text, "link", false]
+      [ fetch_result.text, "link", false ]
     elsif @pasted_text.present?
-      [@pasted_text, "paste", false]
+      [ @pasted_text, "paste", false ]
     else
-      [Result.new(success: false, error: "Please provide a URL or paste the listing text"), nil, false]
+      [ Result.new(success: false, error: "Please provide a URL or paste the listing text"), nil, false ]
     end
   end
 

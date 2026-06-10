@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get  "up" => "rails/health#show", as: :rails_health_check
+  get "up" => "rails/health#show", as: :rails_health_check
 
   # PIN auth
   resource :session, only: %i[new create destroy]

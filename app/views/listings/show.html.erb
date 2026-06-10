@@ -111,11 +111,11 @@
           <p class="font-medium text-gray-900 mt-0.5"><%= @listing.utilities_included.join(", ").humanize %></p>
         </div>
       <% end %>
-      <% if @listing.url.present? %>
+      <% if (href = safe_url(@listing.url)) %>
         <div class="col-span-2">
           <p class="text-xs text-gray-400 uppercase tracking-wide">Original Listing</p>
-          <%= link_to @listing.source.presence || @listing.url.truncate(40),
-                @listing.url, target: "_blank", rel: "noopener noreferrer",
+          <%= link_to @listing.source.presence || href.truncate(40),
+                href, target: "_blank", rel: "noopener noreferrer",
                 class: "text-indigo-600 underline text-sm break-all" %>
         </div>
       <% end %>

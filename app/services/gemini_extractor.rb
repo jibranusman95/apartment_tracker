@@ -80,12 +80,12 @@ class GeminiExtractor
 
     payload = {
       systemInstruction: {
-        parts: [{ text: SYSTEM_PROMPT }]
+        parts: [ { text: SYSTEM_PROMPT } ]
       },
       contents: [
         {
           role: "user",
-          parts: [{ text: prompt }]
+          parts: [ { text: prompt } ]
         }
       ],
       generationConfig: {
