@@ -10,11 +10,11 @@ RSpec.describe "Listings system", type: :system do
     {
       "rent_monthly" => 1850, "bedrooms" => 2, "bathrooms" => 1.0, "sqft" => 900,
       "parking" => true, "parking_details" => "included", "laundry" => "in-unit",
-      "balcony" => true, "pets_allowed" => true, "utilities_included" => ["heat", "water"],
+      "balcony" => true, "pets_allowed" => true, "utilities_included" => [ "heat", "water" ],
       "neighbourhood" => "The Annex", "city" => "Toronto", "available_date" => "2026-08-01",
-      "amenities" => ["dishwasher", "gym"], "red_flags" => [],
-      "pros" => ["Under budget", "Parking included", "Great location"],
-      "cons" => ["Older building"],
+      "amenities" => [ "dishwasher", "gym" ], "red_flags" => [],
+      "pros" => [ "Under budget", "Parking included", "Great location" ],
+      "cons" => [ "Older building" ],
       "summary" => "Excellent 2BR with all must-haves under budget. Highly recommended."
     }
   end

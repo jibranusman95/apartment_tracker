@@ -137,17 +137,17 @@ RSpec.describe ListingScorer, type: :service do
     end
 
     it "awards 1 pt for dishwasher" do
-      result = score_listing(laundry: "shared", amenities: ["dishwasher"], balcony: false)
+      result = score_listing(laundry: "shared", amenities: [ "dishwasher" ], balcony: false)
       expect(result[:breakdown][:amenities]).to be >= 1
     end
 
     it "awards 1 pt for gym/pool" do
-      result = score_listing(laundry: "shared", amenities: ["gym"], balcony: false)
+      result = score_listing(laundry: "shared", amenities: [ "gym" ], balcony: false)
       expect(result[:breakdown][:amenities]).to be >= 1
     end
 
     it "caps amenity score at 5" do
-      result = score_listing(laundry: "in-unit", amenities: ["dishwasher", "gym", "pool", "rooftop"])
+      result = score_listing(laundry: "in-unit", amenities: [ "dishwasher", "gym", "pool", "rooftop" ])
       expect(result[:breakdown][:amenities]).to eq(5)
     end
   end
@@ -165,7 +165,7 @@ RSpec.describe ListingScorer, type: :service do
         rent: 1800, bedrooms: 2, sqft: nil,
         parking: true, parking_details: "included",
         balcony: true, laundry: "in-unit",
-        amenities: ["dishwasher", "gym"]
+        amenities: [ "dishwasher", "gym" ]
       )
       expect(result[:score]).to be <= 100
       expect(result[:score]).to be >= 85

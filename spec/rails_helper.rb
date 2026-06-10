@@ -16,7 +16,7 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  config.fixture_paths = [Rails.root.join("spec/fixtures")]
+  config.fixture_paths = [ Rails.root.join("spec/fixtures") ]
   config.use_transactional_fixtures = true
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
@@ -33,7 +33,7 @@ RSpec.configure do |config|
     if example.metadata[:js]
       if CHROME_AVAILABLE || ENV["CI"]
         driven_by :selenium, using: :headless_chrome,
-                             screen_size: [390, 844],
+                             screen_size: [ 390, 844 ],
                              options: { args: %w[--headless --no-sandbox --disable-gpu] }
       else
         skip "Skipped: requires Chrome (not installed). Run with Chrome to execute JS system specs."

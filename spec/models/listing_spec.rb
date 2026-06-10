@@ -145,8 +145,8 @@ RSpec.describe Listing, type: :model do
 
   describe "#top_pros" do
     it "returns the first 2 pros" do
-      listing.ai_pros = ["Pro 1", "Pro 2", "Pro 3"]
-      expect(listing.top_pros).to eq(["Pro 1", "Pro 2"])
+      listing.ai_pros = [ "Pro 1", "Pro 2", "Pro 3" ]
+      expect(listing.top_pros).to eq([ "Pro 1", "Pro 2" ])
     end
 
     it "returns an empty array when ai_pros is nil" do

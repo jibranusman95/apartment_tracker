@@ -11,11 +11,11 @@ RSpec.describe "Listings", type: :request do
     {
       "rent_monthly" => 1950, "bedrooms" => 2, "bathrooms" => 1.0, "sqft" => 800,
       "parking" => true, "parking_details" => "included", "laundry" => "in-unit",
-      "balcony" => true, "pets_allowed" => false, "utilities_included" => ["heat"],
+      "balcony" => true, "pets_allowed" => false, "utilities_included" => [ "heat" ],
       "neighbourhood" => "Annex", "city" => "Toronto", "available_date" => "2026-08-01",
-      "amenities" => ["dishwasher"], "red_flags" => [],
-      "pros" => ["Parking", "Good price", "Laundry"],
-      "cons" => ["No pets"],
+      "amenities" => [ "dishwasher" ], "red_flags" => [],
+      "pros" => [ "Parking", "Good price", "Laundry" ],
+      "cons" => [ "No pets" ],
       "summary" => "Solid 2BR under budget."
     }
   end

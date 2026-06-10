@@ -8,10 +8,10 @@ RSpec.describe ListingCreator, type: :service do
       "rent_monthly" => 1950, "bedrooms" => 2, "bathrooms" => 1.0, "sqft" => 850,
       "parking" => true, "parking_details" => "included",
       "laundry" => "in-unit", "balcony" => false, "pets_allowed" => true,
-      "utilities_included" => ["heat"], "neighbourhood" => "Annex", "city" => "Toronto",
-      "available_date" => "2026-08-01", "amenities" => ["dishwasher"],
-      "red_flags" => [], "pros" => ["Parking included", "Good price", "In-unit laundry"],
-      "cons" => ["No balcony"], "summary" => "Great value 2BR with parking under budget."
+      "utilities_included" => [ "heat" ], "neighbourhood" => "Annex", "city" => "Toronto",
+      "available_date" => "2026-08-01", "amenities" => [ "dishwasher" ],
+      "red_flags" => [], "pros" => [ "Parking included", "Good price", "In-unit laundry" ],
+      "cons" => [ "No balcony" ], "summary" => "Great value 2BR with parking under budget."
     }
   end
 

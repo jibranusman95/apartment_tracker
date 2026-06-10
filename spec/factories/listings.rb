@@ -13,14 +13,14 @@ FactoryBot.define do
     laundry       { "in-unit" }
     balcony       { true }
     pets_allowed  { true }
-    utilities_included { ["heat", "water"] }
+    utilities_included { [ "heat", "water" ] }
     neighbourhood { Faker::Address.community }
     city          { "Toronto" }
     available_date { "2026-08-01" }
-    amenities     { ["dishwasher", "gym"] }
+    amenities     { [ "dishwasher", "gym" ] }
     red_flags     { [] }
-    ai_pros       { ["Spacious layout", "Prime location", "Parking included"] }
-    ai_cons       { ["No pets policy", "Older building"] }
+    ai_pros       { [ "Spacious layout", "Prime location", "Parking included" ] }
+    ai_cons       { [ "No pets policy", "Older building" ] }
     ai_summary    { "A solid 2BR in a great neighbourhood. Well within budget with parking included." }
     score         { 87 }
     score_breakdown { { "price" => 40, "parking" => 25, "bedrooms" => 15, "sqft" => 7, "balcony" => 5, "amenities" => 5, "flags" => [] } }
@@ -34,14 +34,14 @@ FactoryBot.define do
     trait :over_budget do
       rent { 2600 }
       score { 35 }
-      score_breakdown { { "price" => 0, "parking" => 25, "bedrooms" => 15, "sqft" => 5, "balcony" => 0, "amenities" => 0, "flags" => ["OVER HARD LIMIT"] } }
+      score_breakdown { { "price" => 0, "parking" => 25, "bedrooms" => 15, "sqft" => 5, "balcony" => 0, "amenities" => 0, "flags" => [ "OVER HARD LIMIT" ] } }
     end
 
     trait :no_parking do
       parking { false }
       parking_details { nil }
       score { 50 }
-      score_breakdown { { "price" => 25, "parking" => 0, "bedrooms" => 15, "sqft" => 5, "balcony" => 5, "amenities" => 0, "flags" => ["MISSING MUST-HAVE: No parking"] } }
+      score_breakdown { { "price" => 25, "parking" => 0, "bedrooms" => 15, "sqft" => 5, "balcony" => 5, "amenities" => 0, "flags" => [ "MISSING MUST-HAVE: No parking" ] } }
     end
 
     trait :studio do

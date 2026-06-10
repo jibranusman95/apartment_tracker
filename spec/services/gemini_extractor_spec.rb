@@ -10,25 +10,25 @@ RSpec.describe GeminiExtractor, type: :service do
 
   let(:valid_json_response) do
     {
-      "candidates" => [{
+      "candidates" => [ {
         "content" => {
-          "parts" => [{
+          "parts" => [ {
             "text" => {
               rent_monthly: 1950, bedrooms: 2, bathrooms: 1.0, sqft: 850,
               parking: true, parking_details: "included",
               laundry: "in-unit", balcony: true, pets_allowed: false,
-              utilities_included: ["heat", "water"],
+              utilities_included: [ "heat", "water" ],
               neighbourhood: "Downtown", city: "Toronto",
               available_date: "2026-08-01",
-              amenities: ["dishwasher", "balcony"],
+              amenities: [ "dishwasher", "balcony" ],
               red_flags: [],
-              pros: ["Parking included", "In-unit laundry", "Great location"],
-              cons: ["No pets"],
+              pros: [ "Parking included", "In-unit laundry", "Great location" ],
+              cons: [ "No pets" ],
               summary: "Solid 2BR under budget with parking and laundry included. Good value for Downtown Toronto."
             }.to_json
-          }]
+          } ]
         }
-      }]
+      } ]
     }.to_json
   end
 
@@ -69,7 +69,7 @@ RSpec.describe GeminiExtractor, type: :service do
 
     context "when the API returns malformed JSON" do
       before do
-        malformed = { "candidates" => [{ "content" => { "parts" => [{ "text" => "not json at all" }] } }] }.to_json
+        malformed = { "candidates" => [ { "content" => { "parts" => [ { "text" => "not json at all" } ] } } ] }.to_json
         stub_request(:post, /generativelanguage\.googleapis\.com/)
           .to_return(status: 200, body: malformed, headers: { "Content-Type" => "application/json" })
       end
@@ -87,9 +87,9 @@ RSpec.describe GeminiExtractor, type: :service do
                          parking: true, parking_details: "included", laundry: "in-unit",
                          balcony: true, pets_allowed: false, utilities_included: [],
                          neighbourhood: "Downtown", city: "Toronto", available_date: "2026-08-01",
-                         amenities: [], red_flags: [], pros: ["a", "b", "c"], cons: [], summary: "Good unit." }
+                         amenities: [], red_flags: [], pros: [ "a", "b", "c" ], cons: [], summary: "Good unit." }
         markdown_wrapped = "```json\n#{json_payload.to_json}\n```"
-        wrapped_response = { "candidates" => [{ "content" => { "parts" => [{ "text" => markdown_wrapped }] } }] }.to_json
+        wrapped_response = { "candidates" => [ { "content" => { "parts" => [ { "text" => markdown_wrapped } ] } } ] }.to_json
 
         stub_request(:post, /generativelanguage\.googleapis\.com/)
           .to_return(status: 200, body: wrapped_response, headers: { "Content-Type" => "application/json" })
