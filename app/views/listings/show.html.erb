@@ -1,0 +1,292 @@
+<% content_for :title, "#{@listing.neighbourhood || "Listing"} — Home Finder" %>
+
+<%# ── Header ── %>
+<header class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <%= link_to listings_path, class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
+        ← Back
+      <% end %>
+      <h1 class="text-base font-bold text-gray-900 truncate max-w-[180px]">
+        <%= @listing.neighbourhood.presence || "Listing" %>
+      </h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= link_to edit_listing_path(@listing),
+            class: "text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors" do %>
+        Edit
+      <% end %>
+    </div>
+  </div>
+</header>
+
+<div class="px-4 py-5 space-y-4">
+
+  <%# ── Gone Banner ── %>
+  <% if @listing.gone? %>
+    <div class="rounded-xl bg-gray-100 border border-gray-300 px-4 py-3 text-sm text-gray-600 font-medium text-center">
+      This listing is marked as gone
+    </div>
+  <% end %>
+
+  <%# ── Hero card: rent + score ── %>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <div>
+        <p class="text-2xl font-bold text-gray-900">
+          <%= @listing.rent ? "$#{number_with_delimiter(@listing.rent)}/mo" : "Rent unknown" %>
+        </p>
+        <p class="text-sm text-gray-500 mt-0.5">
+          <%= [@listing.neighbourhood, @listing.city].compact.join(", ").presence || "Location unknown" %>
+        </p>
+        <%# Source badge %>
+        <% if @listing.source.present? %>
+          <span class="inline-block mt-1 text-xs bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2.5 py-0.5">
+            <%= @listing.source %>
+          </span>
+        <% end %>
+      </div>
+
+      <div class="text-right shrink-0">
+        <% if @listing.score %>
+          <% color = @listing.score_color %>
+          <span class="text-3xl font-bold
+            <%= color == "green"  ? "text-emerald-600" :
+                color == "yellow" ? "text-amber-500" :
+                                    "text-red-500" %>">
+            <%= @listing.score %>
+          </span>
+          <p class="text-xs text-gray-400">/ 100</p>
+        <% else %>
+          <span class="text-sm text-gray-400">Not scored</span>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Budget badge %>
+    <% case @listing.budget_label
+       when "under_2k" %>
+      <span class="inline-block text-xs bg-emerald-100 text-emerald-700 rounded-full px-3 py-1 font-medium">✓ Under $2k</span>
+    <% when "soft_limit" %>
+      <span class="inline-block text-xs bg-amber-100 text-amber-700 rounded-full px-3 py-1 font-medium">~ Soft Limit ($2001–$2250)</span>
+    <% when "over_budget" %>
+      <span class="inline-block text-xs bg-red-100 text-red-700 rounded-full px-3 py-1 font-medium">✗ Over Budget</span>
+    <% end %>
+
+    <%# Flags %>
+    <% flags = @listing.score_breakdown&.dig("flags") || [] %>
+    <% flags.each do |flag| %>
+      <div class="mt-2 rounded-lg bg-red-50 border border-red-200 px-3 py-1.5 text-xs text-red-700 font-medium">
+        ⚠️ <%= flag %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ── Key details grid ── %>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">Details</h2>
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <% detail = ->(label, value) do %>
+        <div>
+          <p class="text-xs text-gray-400 uppercase tracking-wide"><%= label %></p>
+          <p class="font-medium text-gray-900 mt-0.5"><%= value.presence || "—" %></p>
+        </div>
+      <% end %>
+
+      <%= detail.call("Bedrooms",   @listing.bedrooms ? "#{@listing.bedrooms} BR" : nil) %>
+      <%= detail.call("Bathrooms",  @listing.bathrooms&.to_s) %>
+      <%= detail.call("Sq. Ft.",    @listing.sqft ? number_with_delimiter(@listing.sqft) : nil) %>
+      <%= detail.call("Available",  @listing.available_date) %>
+      <%= detail.call("Laundry",    @listing.laundry&.humanize) %>
+      <%= detail.call("Pets",       @listing.pets_allowed.nil? ? nil : (@listing.pets_allowed ? "Allowed" : "Not allowed")) %>
+      <div class="col-span-2">
+        <p class="text-xs text-gray-400 uppercase tracking-wide">Parking</p>
+        <p class="font-medium text-gray-900 mt-0.5">
+          <%= @listing.parking ? "✓ #{@listing.parking_details.presence || "Yes"}" : (@listing.parking == false ? "✗ None" : "—") %>
+        </p>
+      </div>
+      <% if @listing.utilities_included.present? %>
+        <div class="col-span-2">
+          <p class="text-xs text-gray-400 uppercase tracking-wide">Utilities Included</p>
+          <p class="font-medium text-gray-900 mt-0.5"><%= @listing.utilities_included.join(", ").humanize %></p>
+        </div>
+      <% end %>
+      <% if @listing.url.present? %>
+        <div class="col-span-2">
+          <p class="text-xs text-gray-400 uppercase tracking-wide">Original Listing</p>
+          <%= link_to @listing.source.presence || @listing.url.truncate(40),
+                @listing.url, target: "_blank", rel: "noopener noreferrer",
+                class: "text-indigo-600 underline text-sm break-all" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── AI Summary ── %>
+  <% if @listing.ai_summary.present? %>
+    <div class="bg-indigo-50 rounded-2xl border border-indigo-100 p-4">
+      <h2 class="text-sm font-semibold text-indigo-700 mb-2">AI Take</h2>
+      <p class="text-sm text-gray-800 leading-relaxed"><%= @listing.ai_summary %></p>
+    </div>
+  <% end %>
+
+  <%# ── Pros & Cons ── %>
+  <% if @listing.ai_pros.present? || @listing.ai_cons.present? %>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
+      <% if @listing.ai_pros.present? %>
+        <div>
+          <h2 class="text-sm font-semibold text-emerald-700 mb-2">✅ Pros</h2>
+          <ul class="space-y-1">
+            <% @listing.ai_pros.each do |pro| %>
+              <li class="text-sm text-gray-800 flex items-start gap-2">
+                <span class="text-emerald-500 mt-0.5 shrink-0">•</span><%= pro %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      <% if @listing.ai_cons.present? %>
+        <div>
+          <h2 class="text-sm font-semibold text-red-600 mb-2">❌ Cons</h2>
+          <ul class="space-y-1">
+            <% @listing.ai_cons.each do |con| %>
+              <li class="text-sm text-gray-800 flex items-start gap-2">
+                <span class="text-red-400 mt-0.5 shrink-0">•</span><%= con %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%# ── Red Flags ── %>
+  <% if @listing.red_flags.present? %>
+    <div class="bg-red-50 rounded-2xl border border-red-100 p-4">
+      <h2 class="text-sm font-semibold text-red-700 mb-2">⚠️ Red Flags</h2>
+      <ul class="space-y-1">
+        <% @listing.red_flags.each do |flag| %>
+          <li class="text-sm text-red-800 flex items-start gap-2">
+            <span class="shrink-0 mt-0.5">•</span><%= flag %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# ── Amenities ── %>
+  <% if @listing.amenities.present? %>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Amenities</h2>
+      <div class="flex flex-wrap gap-2">
+        <% @listing.amenities.each do |a| %>
+          <span class="text-xs bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-3 py-1">
+            <%= a %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ── Score Breakdown ── %>
+  <% if @listing.score_breakdown.present? %>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Score Breakdown</h2>
+      <% breakdown = @listing.score_breakdown.except("flags") %>
+      <% max_pts = { "price" => 40, "parking" => 25, "bedrooms" => 15, "sqft" => 10, "balcony" => 5, "amenities" => 5 } %>
+      <div class="space-y-2">
+        <% breakdown.each do |key, pts| %>
+          <% max = max_pts[key] || 5 %>
+          <div>
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span class="capitalize"><%= key.humanize %></span>
+              <span class="font-medium text-gray-800"><%= pts %> / <%= max %></span>
+            </div>
+            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-2 rounded-full
+                <%= pts.to_i == max ? "bg-emerald-400" : pts.to_i > 0 ? "bg-indigo-400" : "bg-gray-300" %>"
+                   style="width: <%= max > 0 ? (pts.to_f / max * 100).round : 0 %>%">
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between text-sm font-semibold">
+        <span>Total</span>
+        <span><%= @listing.score %> / 100</span>
+      </div>
+    </div>
+  <% end %>
+
+  <%# ── Notes ── %>
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+    <h2 class="text-sm font-semibold text-gray-700 mb-2">Notes</h2>
+    <textarea id="listing-notes"
+              placeholder="Add your thoughts here… saves automatically"
+              rows="4"
+              class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none
+                     focus:ring-2 focus:ring-indigo-400 focus:border-transparent bg-gray-50 resize-none"
+              data-listing-id="<%= @listing.id %>"><%= @listing.notes %></textarea>
+    <p id="notes-saved-indicator" class="text-xs text-gray-400 mt-1 hidden">Saved ✓</p>
+  </div>
+
+  <%# ── Original Text ── %>
+  <% if @listing.raw_text.present? %>
+    <details class="bg-white rounded-2xl border border-gray-200 shadow-sm">
+      <summary class="px-4 py-3 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 select-none">
+        Show original text
+      </summary>
+      <div class="px-4 pb-4">
+        <p class="text-xs text-gray-500 whitespace-pre-wrap leading-relaxed"><%= @listing.raw_text.truncate(3000) %></p>
+      </div>
+    </details>
+  <% end %>
+
+  <%# ── Actions ── %>
+  <div class="space-y-3 pt-2">
+    <%= button_to toggle_status_listing_path(@listing), method: :patch,
+          class: "w-full rounded-2xl py-3.5 text-sm font-semibold transition-colors shadow-sm
+                  #{@listing.gone? ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-700"}" do %>
+      <%= @listing.gone? ? "↩ Mark as Available" : "Mark as Gone" %>
+    <% end %>
+
+    <%= button_to listing_path(@listing), method: :delete,
+          data: { turbo_confirm: "Delete this listing? This cannot be undone." },
+          class: "w-full rounded-2xl py-3.5 text-sm font-semibold bg-red-50 hover:bg-red-100 text-red-600
+                  border border-red-200 transition-colors" do %>
+      Delete Listing
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Notes auto-save on blur
+  const notesArea = document.getElementById("listing-notes");
+  const indicator = document.getElementById("notes-saved-indicator");
+  if (notesArea) {
+    let debounceTimer;
+    notesArea.addEventListener("input", function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(saveNotes, 800);
+    });
+    notesArea.addEventListener("blur", saveNotes);
+  }
+
+  function saveNotes() {
+    const listingId = notesArea.dataset.listingId;
+    const notes = notesArea.value;
+    fetch(`/listings/${listingId}/update_notes`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: `notes=${encodeURIComponent(notes)}`
+    }).then(r => {
+      if (r.ok && indicator) {
+        indicator.classList.remove("hidden");
+        setTimeout(() => indicator.classList.add("hidden"), 2000);
+      }
+    });
+  }
+</script>
