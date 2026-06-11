@@ -39,7 +39,7 @@ RSpec.describe "Listings system", type: :system do
       fill_in "pin", with: "1234"
       click_button "Unlock"
       expect(page).to have_current_path(root_path)
-      expect(page).to have_content("Home Finder")
+      expect(page).to have_content("Home Hunter")
     end
 
     it "shows an error for the wrong PIN" do
@@ -106,7 +106,7 @@ RSpec.describe "Listings system", type: :system do
 
     it "navigates to detail view on card tap" do
       visit root_path
-      click_link listing_a.neighbourhood
+      find("a[href='#{listing_path(listing_a)}']").click
       expect(page).to have_current_path(listing_path(listing_a))
     end
 

@@ -2,7 +2,8 @@ require "net/http"
 require "json"
 
 class GeminiExtractor
-  API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+  BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+  MODELS   = %w[gemini-2.5-flash gemini-3.1-flash-lite gemini-2.5-flash-lite].freeze
 
   SYSTEM_PROMPT = <<~PROMPT.strip
     You are a helpful assistant that extracts structured information from apartment rental listing descriptions.
@@ -47,25 +48,37 @@ class GeminiExtractor
 
     prompt = USER_PROMPT_TEMPLATE % { text: text.truncate(12_000) }
 
-    response = call_api(api_key, prompt)
+    last_error = nil
 
-    unless response.is_a?(Net::HTTPSuccess)
-      return Result.new(success: false, error: "Gemini API error (#{response.code}): #{response.body.truncate(200)}")
+    MODELS.each do |model|
+      response = call_api(api_key, prompt, model)
+      code = response.code.to_i
+
+      # Rate limited or overloaded — try next model
+      if [ 429, 503, 500 ].include?(code)
+        last_error = "rate_limited"
+        next
+      end
+
+      unless response.is_a?(Net::HTTPSuccess)
+        last_error = "Gemini API error (#{code}): #{response.body.truncate(200)}"
+        next
+      end
+
+      parsed = JSON.parse(response.body)
+      raw_content = parsed.dig("candidates", 0, "content", "parts", 0, "text")
+      next if raw_content.blank?
+
+      json_text = raw_content.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
+      data = JSON.parse(json_text)
+      return Result.new(success: true, data: data)
     end
 
-    parsed = JSON.parse(response.body)
-    raw_content = parsed.dig("candidates", 0, "content", "parts", 0, "text")
-
-    if raw_content.blank?
-      return Result.new(success: false, error: "Gemini returned an empty response")
-    end
-
-    # Strip any accidental markdown code fences
-    json_text = raw_content.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
-    data = JSON.parse(json_text)
-
-    Result.new(success: true, data: data)
-  rescue JSON::ParserError => e
+    error_msg = last_error == "rate_limited" \
+      ? "Daily AI limit reached — try again tomorrow, or fill in the fields manually." \
+      : (last_error || "Gemini returned an empty response")
+    Result.new(success: false, error: error_msg)
+  rescue JSON::ParserError
     Result.new(success: false, error: "Gemini returned malformed JSON — you can fill in fields manually")
   rescue StandardError => e
     Result.new(success: false, error: "AI extraction failed: #{e.message.truncate(150)}")
@@ -77,8 +90,8 @@ class GeminiExtractor
     ENV["GEMINI_API_KEY"]
   end
 
-  def call_api(api_key, prompt)
-    uri = URI("#{API_URL}?key=#{api_key}")
+  def call_api(api_key, prompt, model)
+    uri = URI("#{BASE_URL}/#{model}:generateContent?key=#{api_key}")
 
     payload = {
       systemInstruction: {

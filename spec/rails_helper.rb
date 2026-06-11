@@ -25,6 +25,11 @@ RSpec.configure do |config|
   config.include SessionHelpers, type: :request
   config.include SessionHelpers, type: :system
 
+  # Prevent DistanceService from making real HTTP calls in tests
+  config.before(:each) do
+    allow(DistanceService).to receive(:compute_for).and_return(nil)
+  end
+
   # Capybara / system spec driver
   # Requires Google Chrome for :js examples. Rack::Test is the fallback for non-JS specs.
   CHROME_AVAILABLE = system("which google-chrome chromium-browser chromium > /dev/null 2>&1")

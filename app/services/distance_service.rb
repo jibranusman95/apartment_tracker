@@ -2,7 +2,8 @@ require "net/http"
 require "json"
 
 class DistanceService
-  API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+  BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+  MODELS   = %w[gemini-2.5-flash gemini-3.1-flash-lite gemini-2.5-flash-lite].freeze
   WORKPLACE = "603 Michigan Drive, Oakville, ON"
 
   Result = Struct.new(:distance_km, :drive_minutes, keyword_init: true)
@@ -24,8 +25,14 @@ class DistanceService
       Use typical road routes in the Greater Toronto Area. If the address is too vague to estimate, return null for both fields.
     PROMPT
 
-    response = call_api(api_key, prompt)
-    return nil unless response.is_a?(Net::HTTPSuccess)
+    response = nil
+    MODELS.each do |model|
+      r = call_api(api_key, prompt, model)
+      next if [ 429, 503, 500 ].include?(r.code.to_i)
+      response = r
+      break
+    end
+    return nil unless response&.is_a?(Net::HTTPSuccess)
 
     parsed = JSON.parse(response.body)
     raw = parsed.dig("candidates", 0, "content", "parts", 0, "text").to_s
@@ -44,8 +51,8 @@ class DistanceService
 
   private
 
-  def call_api(api_key, prompt)
-    uri = URI("#{API_URL}?key=#{api_key}")
+  def call_api(api_key, prompt, model)
+    uri = URI("#{BASE_URL}/#{model}:generateContent?key=#{api_key}")
 
     payload = {
       contents: [ { role: "user", parts: [ { text: prompt } ] } ],

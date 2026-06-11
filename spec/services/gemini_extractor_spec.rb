@@ -102,16 +102,16 @@ RSpec.describe GeminiExtractor, type: :service do
       end
     end
 
-    context "when the API returns a non-200 response" do
+    context "when all models are rate limited" do
       before do
         stub_request(:post, /generativelanguage\.googleapis\.com/)
           .to_return(status: 429, body: "Rate limited")
       end
 
-      it "returns a failed result with the status code" do
+      it "returns a failed result with a daily limit message" do
         result = GeminiExtractor.extract(sample_text)
         expect(result.success).to be false
-        expect(result.error).to match(/429/)
+        expect(result.error).to match(/limit|tomorrow|manually/i)
       end
     end
 
