@@ -119,6 +119,8 @@ class ListingCreator
     listing.ai_pros            = Array(data["pros"])
     listing.ai_cons            = Array(data["cons"])
     listing.ai_summary         = data["summary"]
+    listing.distance_km        = data["distance_km"]
+    listing.drive_minutes      = data["drive_minutes"]
   end
 
   def reschedule_sqft_scores

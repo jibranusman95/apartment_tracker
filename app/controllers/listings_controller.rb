@@ -1,16 +1,29 @@
 class ListingsController < ApplicationController
-  before_action :set_listing, only: %i[show edit update destroy toggle_status]
+  before_action :set_listing, only: %i[show edit update destroy toggle_status toggle_favorite]
 
   def index
     @listings = Listing.by_score
 
-    @listings = @listings.under_2k    if params[:filter] == "under_2k"
-    @listings = @listings.two_br      if params[:filter] == "two_br"
-    @listings = @listings.has_parking if params[:filter] == "has_parking"
-    @listings = @listings.active      unless params[:filter] == "all"
+    case params[:filter]
+    when "under_2k"      then @listings = @listings.under_2k
+    when "two_br"        then @listings = @listings.two_br
+    when "one_br"        then @listings = @listings.one_br
+    when "has_parking"   then @listings = @listings.has_parking
+    when "in_suite"      then @listings = @listings.in_suite_laundry
+    when "favorited"     then @listings = @listings.favorited
+    when "ideal"         then @listings = @listings.ideal
+    end
+
+    @listings = @listings.active unless params[:filter] == "all"
   end
 
   def show
+    if @listing.distance_km.nil? && @listing.drive_minutes.nil?
+      result = DistanceService.compute_for(@listing)
+      if result
+        @listing.update_columns(distance_km: result.distance_km, drive_minutes: result.drive_minutes)
+      end
+    end
   end
 
   def new
@@ -58,6 +71,12 @@ class ListingsController < ApplicationController
     @listing.update!(status: new_status)
     notice = new_status == "gone" ? "Marked as gone." : "Marked as available again."
     redirect_to listing_path(@listing), notice: notice
+  end
+
+  def toggle_favorite
+    @listing.toggle_favorite!
+    label = @listing.favorited? ? "Added to favourites." : "Removed from favourites."
+    redirect_to listing_path(@listing), notice: label
   end
 
   # PATCH /listings/:id/update_notes — inline auto-save

@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     member do
       patch :toggle_status
       patch :update_notes
+      patch :toggle_favorite
     end
     collection do
       get :resolve_source

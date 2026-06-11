@@ -7,12 +7,16 @@ class Listing < ApplicationRecord
   validates :status, inclusion: { in: STATUSES }
   validates :input_mode, inclusion: { in: INPUT_MODES }, allow_blank: true
 
-  scope :active, -> { where(status: "active") }
-  scope :gone, -> { where(status: "gone") }
-  scope :by_score, -> { order(score: :desc) }
-  scope :under_2k, -> { where("rent <= 2000") }
-  scope :two_br, -> { where("bedrooms >= 2") }
-  scope :has_parking, -> { where(parking: true) }
+  scope :active,          -> { where(status: "active") }
+  scope :gone,            -> { where(status: "gone") }
+  scope :by_score,        -> { order(score: :desc) }
+  scope :under_2k,        -> { where("rent <= 2000") }
+  scope :two_br,          -> { where("bedrooms >= 2") }
+  scope :one_br,          -> { where(bedrooms: 1) }
+  scope :has_parking,     -> { where(parking: true) }
+  scope :in_suite_laundry, -> { where(laundry: "in-unit") }
+  scope :favorited,       -> { where(favorited: true) }
+  scope :ideal,           -> { where("bedrooms >= 2").where(laundry: "in-unit").where(parking: true) }
 
   def over_budget?
     rent.present? && rent > 2250
@@ -50,5 +54,17 @@ class Listing < ApplicationRecord
 
   def needs_review?
     score.nil? && rent.nil?
+  end
+
+  def toggle_favorite!
+    update!(favorited: !favorited)
+  end
+
+  def distance_label
+    return nil unless distance_km.present? || drive_minutes.present?
+    parts = []
+    parts << "#{distance_km} km" if distance_km.present?
+    parts << "~#{drive_minutes} min drive" if drive_minutes.present?
+    parts.join(" · ")
   end
 end

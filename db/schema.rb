@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_194753) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_11_132856) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_10_194753) do
     t.integer "bedrooms"
     t.string "city"
     t.datetime "created_at", null: false
+    t.decimal "distance_km"
+    t.integer "drive_minutes"
+    t.boolean "favorited", default: false, null: false
     t.string "input_mode"
     t.string "laundry"
     t.string "neighbourhood"

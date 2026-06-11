@@ -12,6 +12,10 @@
       </h1>
     </div>
     <div class="flex items-center gap-2">
+      <%= button_to toggle_favorite_listing_path(@listing), method: :patch,
+            class: "text-xl leading-none bg-transparent border-0 cursor-pointer px-2 py-1" do %>
+        <%= @listing.favorited? ? "⭐" : "☆" %>
+      <% end %>
       <%= link_to edit_listing_path(@listing),
             class: "text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors" do %>
         Edit
@@ -109,6 +113,13 @@
         <div class="col-span-2">
           <p class="text-xs text-gray-400 uppercase tracking-wide">Utilities Included</p>
           <p class="font-medium text-gray-900 mt-0.5"><%= @listing.utilities_included.join(", ").humanize %></p>
+        </div>
+      <% end %>
+      <% if @listing.distance_label %>
+        <div class="col-span-2">
+          <p class="text-xs text-gray-400 uppercase tracking-wide">Distance to Work</p>
+          <p class="font-medium text-gray-900 mt-0.5">📍 <%= @listing.distance_label %></p>
+          <p class="text-xs text-gray-400">603 Michigan Dr, Oakville</p>
         </div>
       <% end %>
       <% if (href = safe_url(@listing.url)) %>
