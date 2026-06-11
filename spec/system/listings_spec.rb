@@ -129,8 +129,9 @@ RSpec.describe "Listings system", type: :system do
   end
 
   # ── Add listing form ───────────────────────────────────────────────────────
+  # Mode-switching relies on JS — requires a real browser.
 
-  describe "Add listing (paste mode)" do
+  describe "Add listing (paste mode)", :js do
     before { browser_sign_in }
 
     it "successfully submits a pasted listing and redirects to detail" do

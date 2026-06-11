@@ -42,10 +42,7 @@ class ListingsController < ApplicationController
 
   def update
     if @listing.update(listing_update_params)
-      respond_to do |format|
-        format.html { redirect_to listing_path(@listing), notice: "Saved." }
-        format.turbo_stream
-      end
+      redirect_to listing_path(@listing), notice: "Saved."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -53,17 +50,14 @@ class ListingsController < ApplicationController
 
   def destroy
     @listing.destroy
-    redirect_to listings_path, notice: "Listing deleted."
+    redirect_to root_path, notice: "Listing deleted."
   end
 
   def toggle_status
     new_status = @listing.gone? ? "active" : "gone"
     @listing.update!(status: new_status)
-
-    respond_to do |format|
-      format.html  { redirect_to listing_path(@listing) }
-      format.turbo_stream
-    end
+    notice = new_status == "gone" ? "Marked as gone." : "Marked as available again."
+    redirect_to listing_path(@listing), notice: notice
   end
 
   # PATCH /listings/:id/update_notes — inline auto-save

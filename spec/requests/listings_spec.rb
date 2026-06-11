@@ -266,7 +266,7 @@ RSpec.describe "Listings", type: :request do
     it "destroys the listing and redirects to dashboard" do
       expect { delete listing_path(listing) }
         .to change(Listing, :count).by(-1)
-      expect(response).to redirect_to(listings_path)
+      expect(response).to redirect_to(root_path)
     end
   end
 end

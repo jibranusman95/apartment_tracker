@@ -2,14 +2,14 @@
 
 <header class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
   <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-    <%= link_to listings_path, class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
+    <%= link_to root_path, class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
       ← Back
     <% end %>
     <h1 class="text-lg font-bold text-gray-900">Add Listing</h1>
   </div>
 </header>
 
-<div class="px-4 py-6 space-y-5" data-controller="listing-form">
+<div class="px-4 py-6 space-y-5">
   <% if flash.now[:warning] || @fallback_to_paste %>
     <div class="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
       <%= flash.now[:warning] || "Paste the listing description below." %>
@@ -23,16 +23,29 @@
 
   <%= form_with model: @listing, url: listings_path, method: :post, class: "space-y-5" do |f| %>
 
-    <%# ── Input mode toggle ── %>
+    <%# ── URL — always present, always submits ── %>
+    <div class="bg-white rounded-2xl border border-gray-200 p-4 space-y-1">
+      <%= f.label :url, "Listing URL", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.url_field :url,
+            id: "listing_url_field",
+            placeholder: "https://kijiji.ca/...",
+            class: "w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:outline-none
+                    focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white" %>
+      <p id="url-hint" class="text-xs text-gray-400 mt-1">
+        Paste a link and we'll fetch it automatically — or leave blank and paste the text below.
+      </p>
+    </div>
+
+    <%# ── Mode toggle — only controls whether we scrape the URL or use pasted text ── %>
     <div class="bg-white rounded-2xl border border-gray-200 p-4 space-y-4">
-      <h2 class="font-semibold text-gray-900">How do you want to add this?</h2>
+      <h2 class="font-semibold text-gray-900">Listing description</h2>
 
       <div class="flex rounded-xl overflow-hidden border border-gray-200">
         <button type="button" id="btn-link"
                 onclick="switchMode('link')"
                 class="flex-1 py-2.5 text-sm font-medium transition-colors
                        <%= @fallback_to_paste ? "bg-white text-gray-600" : "bg-indigo-600 text-white" %>">
-          🔗 Paste a Link
+          🔗 Fetch from URL
         </button>
         <button type="button" id="btn-paste"
                 onclick="switchMode('paste')"
@@ -44,32 +57,19 @@
 
       <%= f.hidden_field :input_mode, value: @fallback_to_paste ? "paste" : "link", id: "input_mode_field" %>
 
-      <%# Link panel %>
-      <div id="link-panel" class="<%= @fallback_to_paste ? "hidden" : "" %> space-y-3">
-        <%= f.label :url, "Listing URL", class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.url_field :url,
-              id: "listing_url_input",
-              placeholder: "https://kijiji.ca/...",
-              class: "w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:outline-none
-                      focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white",
-              data: { action: "blur->listing-form#resolveSource" } %>
-        <p class="text-xs text-gray-400">We'll fetch and extract the details automatically.</p>
+      <%# Link mode hint %>
+      <div id="link-hint" class="<%= @fallback_to_paste ? "hidden" : "" %>">
+        <p class="text-sm text-gray-500">We'll scrape the URL above and extract the details automatically.</p>
       </div>
 
-      <%# Paste panel %>
-      <div id="paste-panel" class="<%= @fallback_to_paste ? "" : "hidden" %> space-y-3">
-        <%= f.label :raw_text, "Listing Description", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%# Paste panel — only shown in paste mode %>
+      <div id="paste-panel" class="<%= @fallback_to_paste ? "" : "hidden" %> space-y-2">
+        <%= f.label :raw_text, "Paste the listing description", class: "block text-sm font-medium text-gray-700 mb-1" %>
         <%= f.text_area :raw_text,
               rows: 10,
               placeholder: "Paste the full listing description here…",
               class: "w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:outline-none
                       focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white resize-none" %>
-        <%= f.label :url, "Original URL (optional)", class: "block text-sm font-medium text-gray-700 mt-2 mb-1" %>
-        <%= f.url_field :url,
-              placeholder: "https://... (for reference)",
-              class: "w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:outline-none
-                      focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white",
-              data: { action: "blur->listing-form#resolveSource" } %>
       </div>
     </div>
 
@@ -77,7 +77,7 @@
     <div class="bg-white rounded-2xl border border-gray-200 p-4 space-y-1">
       <div class="flex items-center justify-between mb-1">
         <%= f.label :source, "Source / Website", class: "text-sm font-medium text-gray-700", for: "listing_source_field" %>
-        <span id="source-hint" class="text-xs text-gray-400 hidden">Auto-detected</span>
+        <span id="source-hint" class="text-xs text-emerald-600 hidden">✓ Auto-detected</span>
       </div>
       <%= f.text_field :source,
             id: "listing_source_field",
@@ -95,40 +95,36 @@
 </div>
 
 <script>
-  // Mode toggle
+  // Mode toggle — shows/hides paste textarea, never touches the URL field
   function switchMode(mode) {
-    const linkPanel  = document.getElementById("link-panel");
     const pastePanel = document.getElementById("paste-panel");
+    const linkHint   = document.getElementById("link-hint");
     const modeField  = document.getElementById("input_mode_field");
     const btnLink    = document.getElementById("btn-link");
     const btnPaste   = document.getElementById("btn-paste");
 
     if (mode === "link") {
-      linkPanel.classList.remove("hidden");
       pastePanel.classList.add("hidden");
+      linkHint.classList.remove("hidden");
       modeField.value = "link";
-      btnLink.classList.replace("bg-white", "bg-indigo-600");
+      btnLink.classList.replace("bg-white",    "bg-indigo-600");
       btnLink.classList.replace("text-gray-600", "text-white");
       btnPaste.classList.replace("bg-indigo-600", "bg-white");
-      btnPaste.classList.replace("text-white", "text-gray-600");
+      btnPaste.classList.replace("text-white",  "text-gray-600");
     } else {
       pastePanel.classList.remove("hidden");
-      linkPanel.classList.add("hidden");
+      linkHint.classList.add("hidden");
       modeField.value = "paste";
-      btnPaste.classList.replace("bg-white", "bg-indigo-600");
+      btnPaste.classList.replace("bg-white",    "bg-indigo-600");
       btnPaste.classList.replace("text-gray-600", "text-white");
       btnLink.classList.replace("bg-indigo-600", "bg-white");
-      btnLink.classList.replace("text-white", "text-gray-600");
+      btnLink.classList.replace("text-white",   "text-gray-600");
     }
   }
 
   // Auto-resolve source from URL on blur
-  document.addEventListener("blur", function(e) {
-    const field = document.getElementById("listing_url_input") ||
-                  document.querySelector("input[name='listing[url]']");
-    if (!field || e.target !== field) return;
-
-    const url = field.value.trim();
+  document.getElementById("listing_url_field")?.addEventListener("blur", function() {
+    const url = this.value.trim();
     if (!url) return;
 
     fetch(`<%= resolve_source_listings_path %>?url=${encodeURIComponent(url)}`, {
@@ -144,5 +140,5 @@
       }
     })
     .catch(() => {});
-  }, true);
+  });
 </script>

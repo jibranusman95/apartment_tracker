@@ -1,6 +1,8 @@
 <% content_for :title, "Enter PIN" %>
 
-<div class="min-h-screen flex items-center justify-center px-4">
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-10 gap-8">
+
+  <%# ── PIN form ── %>
   <div class="w-full max-w-xs">
     <div class="text-center mb-8">
       <div class="text-5xl mb-3">🏠</div>
@@ -34,4 +36,39 @@
                     font-semibold rounded-2xl py-4 text-base transition-colors shadow-sm cursor-pointer" %>
     <% end %>
   </div>
+
+  <%# ── Supported sites tip ── %>
+  <div class="w-full max-w-xs">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide text-center mb-3">How to add listings</p>
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100 text-sm">
+
+      <div class="px-4 py-3">
+        <p class="font-medium text-gray-700 mb-2">✅ Paste the URL — works automatically</p>
+        <div class="flex flex-wrap gap-1.5">
+          <% %w[ Kijiji Rentals.ca PadMapper Zumper Liv.rent ViewIt GottaRent Craigslist ].each do |site| %>
+            <span class="bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2.5 py-0.5 text-xs"><%= site %></span>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="px-4 py-3">
+        <p class="font-medium text-gray-700 mb-2">⚠️ URL usually works — may need copy-paste</p>
+        <div class="flex flex-wrap gap-1.5">
+          <% [ "Realtor.ca", "Apartments.com", "Zillow", "HotPads" ].each do |site| %>
+            <span class="bg-amber-50 text-amber-700 border border-amber-100 rounded-full px-2.5 py-0.5 text-xs"><%= site %></span>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="px-4 py-3">
+        <p class="font-medium text-gray-700 mb-2">❌ Copy-paste the description instead</p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="bg-red-50 text-red-600 border border-red-100 rounded-full px-2.5 py-0.5 text-xs">Facebook Marketplace</span>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Requires Facebook login — just copy the listing text and paste it in.</p>
+      </div>
+
+    </div>
+  </div>
+
 </div>

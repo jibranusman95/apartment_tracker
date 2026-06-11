@@ -96,21 +96,41 @@ Open `http://localhost:3000` and enter your PIN.
 
 ## Adding a listing
 
-**Mode 1 — Link:** Paste any rental URL. The app fetches the page server-side, strips navigation and scripts, and sends the cleaned text to Gemini. If the page is behind a login wall or the fetch fails, it falls back gracefully to Mode 2.
+**Mode 1 — Link:** Paste any rental URL. The app fetches the page server-side, strips navigation and scripts, and sends the cleaned text to Gemini. If the page is behind a login wall or the fetch fails, it falls back gracefully to Mode 2 with a friendly message.
 
 **Mode 2 — Paste:** Copy and paste the listing description directly. The original URL can still be saved for reference.
 
 Both modes run through the same AI extraction and scoring pipeline.
 
+### Which sites work with a URL?
+
+| Site | URL auto-fetch | Notes |
+|---|---|---|
+| Kijiji | ✅ Works | Most reliable |
+| Rentals.ca | ✅ Works | |
+| PadMapper | ✅ Works | |
+| Zumper | ✅ Works | |
+| Liv.rent | ✅ Works | |
+| ViewIt | ✅ Works | |
+| GottaRent | ✅ Works | |
+| Jumbo | ✅ Works | |
+| Craigslist | ✅ Works | |
+| Realtor.ca | ⚠️ Usually works | Some listings require login |
+| Apartments.com | ⚠️ Usually works | |
+| Zillow / HotPads | ⚠️ Hit or miss | May block scrapers |
+| Facebook Marketplace | ❌ Copy-paste only | Requires Facebook login |
+
+When a URL fetch fails the app tells you clearly and drops you straight into paste mode — just copy the listing text and continue.
+
 ---
 
 ## Source detection
 
-The app automatically identifies which site a listing came from based on the URL domain and displays it as a badge on every card and detail view.
+The app automatically identifies which site a listing came from based on the URL domain and displays it as a badge on every card and detail view. This works regardless of whether you used URL mode or paste mode.
 
-Supported out of the box: **Kijiji · Rentals.ca · PadMapper · Zumper · Facebook Marketplace · Realtor.ca · Liv.rent · ViewIt · GottaRent · Jumbo · Apartments.com · Zillow · HotPads**
+Recognised sites: **Kijiji · Rentals.ca · PadMapper · Zumper · Facebook Marketplace · Realtor.ca · Liv.rent · ViewIt · GottaRent · Jumbo · Apartments.com · Zillow · HotPads · Craigslist**
 
-Unknown domains are capitalised and displayed as-is. You can always edit the source field manually.
+Unknown domains are capitalised and shown as-is. You can always edit the source field manually.
 
 ---
 
