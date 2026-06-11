@@ -87,9 +87,7 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: apartment_tracker_production
-    username: apartment_tracker
-    password: <%= ENV["APARTMENT_TRACKER_DATABASE_PASSWORD"] %>
+    url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *primary_production
     database: apartment_tracker_production_cache

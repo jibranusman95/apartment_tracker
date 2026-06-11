@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "Home Finder" %></title>
+    <title><%= content_for(:title) || "Jibran & Elena's Home Hunter" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -13,17 +13,28 @@
 
   <body class="bg-gray-50 min-h-screen font-sans text-gray-900">
 
-    <%# Flash messages — auto-dismiss via Stimulus later %>
     <div id="flash-messages" class="fixed top-0 inset-x-0 z-50 p-3 space-y-2 pointer-events-none">
       <% flash.each do |type, message| %>
         <% bg = type.to_s == "error" ? "bg-red-100 text-red-800 border-red-200" :
                 type.to_s == "warning" ? "bg-amber-100 text-amber-800 border-amber-200" :
                 "bg-emerald-100 text-emerald-800 border-emerald-200" %>
-        <div class="pointer-events-auto mx-auto max-w-lg rounded-xl px-4 py-3 text-sm font-medium shadow-lg border <%= bg %>">
-          <%= message %>
+        <div class="flash-message pointer-events-auto mx-auto max-w-lg rounded-xl px-4 py-3 text-sm font-medium shadow-lg border <%= bg %> flex items-center justify-between gap-3 transition-opacity duration-300">
+          <span><%= message %></span>
+          <button onclick="this.closest('.flash-message').remove()" class="opacity-50 hover:opacity-100 text-lg leading-none flex-shrink-0">&times;</button>
         </div>
       <% end %>
     </div>
+
+    <script>
+      document.addEventListener("turbo:load", function() {
+        document.querySelectorAll(".flash-message").forEach(function(el) {
+          setTimeout(function() {
+            el.style.opacity = "0";
+            setTimeout(function() { el.remove(); }, 300);
+          }, 2500);
+        });
+      });
+    </script>
 
     <div class="pb-28 max-w-2xl mx-auto">
       <%= yield %>
