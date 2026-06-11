@@ -76,7 +76,7 @@ class ListingsController < ApplicationController
   def toggle_favorite
     @listing.toggle_favorite!
     label = @listing.favorited? ? "Added to favourites." : "Removed from favourites."
-    redirect_to listing_path(@listing), notice: label
+    redirect_back fallback_location: root_path, notice: label
   end
 
   # PATCH /listings/:id/update_notes — inline auto-save

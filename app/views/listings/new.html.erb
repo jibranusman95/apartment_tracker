@@ -34,6 +34,9 @@
       <p id="url-hint" class="text-xs text-gray-400 mt-1">
         Paste a link and we'll fetch it automatically — or leave blank and paste the text below.
       </p>
+      <p id="url-hint-paste" class="text-xs text-gray-400 mt-1 hidden">
+        Optional — add the original link for reference (won't be fetched in paste mode).
+      </p>
     </div>
 
     <%# ── Mode toggle — only controls whether we scrape the URL or use pasted text ── %>
@@ -97,28 +100,34 @@
 <script>
   // Mode toggle — shows/hides paste textarea, never touches the URL field
   function switchMode(mode) {
-    const pastePanel = document.getElementById("paste-panel");
-    const linkHint   = document.getElementById("link-hint");
-    const modeField  = document.getElementById("input_mode_field");
-    const btnLink    = document.getElementById("btn-link");
-    const btnPaste   = document.getElementById("btn-paste");
+    const pastePanel   = document.getElementById("paste-panel");
+    const linkHint     = document.getElementById("link-hint");
+    const modeField    = document.getElementById("input_mode_field");
+    const btnLink      = document.getElementById("btn-link");
+    const btnPaste     = document.getElementById("btn-paste");
+    const urlHint      = document.getElementById("url-hint");
+    const urlHintPaste = document.getElementById("url-hint-paste");
 
     if (mode === "link") {
       pastePanel.classList.add("hidden");
       linkHint.classList.remove("hidden");
       modeField.value = "link";
-      btnLink.classList.replace("bg-white",    "bg-indigo-600");
+      urlHint.classList.remove("hidden");
+      urlHintPaste.classList.add("hidden");
+      btnLink.classList.replace("bg-white",     "bg-indigo-600");
       btnLink.classList.replace("text-gray-600", "text-white");
       btnPaste.classList.replace("bg-indigo-600", "bg-white");
-      btnPaste.classList.replace("text-white",  "text-gray-600");
+      btnPaste.classList.replace("text-white",   "text-gray-600");
     } else {
       pastePanel.classList.remove("hidden");
       linkHint.classList.add("hidden");
       modeField.value = "paste";
-      btnPaste.classList.replace("bg-white",    "bg-indigo-600");
+      urlHint.classList.add("hidden");
+      urlHintPaste.classList.remove("hidden");
+      btnPaste.classList.replace("bg-white",     "bg-indigo-600");
       btnPaste.classList.replace("text-gray-600", "text-white");
       btnLink.classList.replace("bg-indigo-600", "bg-white");
-      btnLink.classList.replace("text-white",   "text-gray-600");
+      btnLink.classList.replace("text-white",    "text-gray-600");
     }
   }
 
