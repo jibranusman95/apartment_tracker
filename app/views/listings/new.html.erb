@@ -1,5 +1,12 @@
 <% content_for :title, "Add Listing" %>
 
+<%# ── AI Loading overlay ── %>
+<div id="ai-loading" class="hidden fixed inset-0 z-50 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+  <div class="w-12 h-12 rounded-full border-4 border-indigo-200 border-t-indigo-600 animate-spin"></div>
+  <p class="text-gray-700 font-medium text-sm">Extracting listing with AI…</p>
+  <p class="text-gray-400 text-xs">This may take up to 15 seconds</p>
+</div>
+
 <header class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
   <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
     <%= link_to root_path, class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
@@ -130,6 +137,16 @@
       btnLink.classList.replace("text-white",    "text-gray-600");
     }
   }
+
+  // Show loading overlay on form submit
+  document.querySelector("form")?.addEventListener("submit", function() {
+    document.getElementById("ai-loading").classList.remove("hidden");
+  });
+
+  // Hide loading overlay if Turbo navigates away (e.g. validation error)
+  document.addEventListener("turbo:render", function() {
+    document.getElementById("ai-loading")?.classList.add("hidden");
+  });
 
   // Auto-resolve source from URL on blur
   document.getElementById("listing_url_field")?.addEventListener("blur", function() {

@@ -38,7 +38,7 @@ class ListingCreator
     raw_text, input_mode, fallback = resolve_text
     return raw_text if raw_text.is_a?(Result)
 
-    extraction = GeminiExtractor.extract(raw_text)
+    extraction = AIExtractor.extract(raw_text)
 
     listing = Listing.new(
       url:        @url,

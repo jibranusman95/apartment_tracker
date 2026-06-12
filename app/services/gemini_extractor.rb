@@ -39,19 +39,21 @@ class GeminiExtractor
   Result = Struct.new(:success, :data, :error, keyword_init: true)
 
   def self.extract(text)
-    new.extract(text)
+    new.extract_with_prompts(SYSTEM_PROMPT, USER_PROMPT_TEMPLATE % { text: text.truncate(12_000) })
   end
 
-  def extract(text)
+  def self.extract_with_prompts(system_prompt, user_prompt)
+    new.extract_with_prompts(system_prompt, user_prompt)
+  end
+
+  def extract_with_prompts(system_prompt, user_prompt)
     api_key = api_key!
     return Result.new(success: false, error: "GEMINI_API_KEY is not configured") if api_key.blank?
-
-    prompt = USER_PROMPT_TEMPLATE % { text: text.truncate(12_000) }
 
     last_error = nil
 
     MODELS.each do |model|
-      response = call_api(api_key, prompt, model)
+      response = call_api(api_key, system_prompt, user_prompt, model)
       code = response.code.to_i
 
       # Rate limited or overloaded — try next model
@@ -90,17 +92,17 @@ class GeminiExtractor
     ENV["GEMINI_API_KEY"]
   end
 
-  def call_api(api_key, prompt, model)
+  def call_api(api_key, system_prompt, user_prompt, model)
     uri = URI("#{BASE_URL}/#{model}:generateContent?key=#{api_key}")
 
     payload = {
       systemInstruction: {
-        parts: [ { text: SYSTEM_PROMPT } ]
+        parts: [ { text: system_prompt } ]
       },
       contents: [
         {
           role: "user",
-          parts: [ { text: prompt } ]
+          parts: [ { text: user_prompt } ]
         }
       ],
       generationConfig: {

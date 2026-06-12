@@ -21,8 +21,8 @@ RSpec.describe "Listings", type: :request do
   end
 
   before do
-    allow(GeminiExtractor).to receive(:extract).and_return(
-      GeminiExtractor::Result.new(success: true, data: extraction_data)
+    allow(AIExtractor).to receive(:extract).and_return(
+      AIExtractor::Result.new(success: true, data: extraction_data)
     )
   end
 
@@ -121,8 +121,8 @@ RSpec.describe "Listings", type: :request do
 
     context "when AI extraction fails" do
       before do
-        allow(GeminiExtractor).to receive(:extract).and_return(
-          GeminiExtractor::Result.new(success: false, error: "Malformed JSON")
+        allow(AIExtractor).to receive(:extract).and_return(
+          AIExtractor::Result.new(success: false, error: "Malformed JSON")
         )
       end
 

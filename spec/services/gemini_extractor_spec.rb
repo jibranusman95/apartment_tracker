@@ -119,7 +119,7 @@ RSpec.describe GeminiExtractor, type: :service do
       it "returns a failed result with a message about the missing key" do
         extractor = GeminiExtractor.new
         allow(extractor).to receive(:api_key!).and_return(nil)
-        result = extractor.extract(sample_text)
+        result = extractor.extract_with_prompts(GeminiExtractor::SYSTEM_PROMPT, sample_text)
         expect(result.success).to be false
         expect(result.error).to match(/GEMINI_API_KEY/i)
       end

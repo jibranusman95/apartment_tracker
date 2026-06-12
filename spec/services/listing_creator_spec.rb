@@ -15,11 +15,11 @@ RSpec.describe ListingCreator, type: :service do
     }
   end
 
-  let(:successful_extraction) { GeminiExtractor::Result.new(success: true, data: extraction_data) }
-  let(:failed_extraction)     { GeminiExtractor::Result.new(success: false, error: "Malformed JSON") }
+  let(:successful_extraction) { AIExtractor::Result.new(success: true, data: extraction_data) }
+  let(:failed_extraction)     { AIExtractor::Result.new(success: false, error: "Malformed JSON") }
 
   before do
-    allow(GeminiExtractor).to receive(:extract).and_return(successful_extraction)
+    allow(AIExtractor).to receive(:extract).and_return(successful_extraction)
   end
 
   describe ".source_from_url" do
@@ -84,7 +84,7 @@ RSpec.describe ListingCreator, type: :service do
     end
 
     context "when AI extraction fails" do
-      before { allow(GeminiExtractor).to receive(:extract).and_return(failed_extraction) }
+      before { allow(AIExtractor).to receive(:extract).and_return(failed_extraction) }
 
       it "still creates the listing" do
         result = ListingCreator.create(params)
