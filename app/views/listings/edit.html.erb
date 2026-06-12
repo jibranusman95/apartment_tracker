@@ -2,7 +2,7 @@
 
 <header class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
   <div class="px-4 sm:px-6 py-3 flex items-center gap-3">
-    <%= link_to listing_path(@listing), class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
+    <%= link_to listing_path(@listing, back: params[:back]), class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
       ← Back
     <% end %>
     <h1 class="text-lg font-bold text-gray-900">Edit Listing</h1>

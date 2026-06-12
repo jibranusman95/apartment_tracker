@@ -64,7 +64,7 @@ class ListingsController < ApplicationController
 
   def update
     if @listing.update(listing_update_params)
-      redirect_to listing_path(@listing), notice: "Saved."
+      redirect_to listing_path(@listing, back: params[:back]), notice: "Saved."
     else
       render :edit, status: :unprocessable_entity
     end

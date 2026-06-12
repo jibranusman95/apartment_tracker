@@ -64,7 +64,7 @@
         <div class="relative rounded-2xl bg-white border border-gray-200 shadow-sm transition-all
                     <%= listing.gone? ? "opacity-50" : "hover:shadow-md hover:border-indigo-200" %>">
 
-          <%= link_to listing_path(listing),
+          <%= link_to listing_path(listing, back: params[:filter]),
                 class: "absolute inset-0 rounded-2xl z-0",
                 aria: { label: listing.neighbourhood.presence || "View listing" } do %><% end %>
 
@@ -149,7 +149,7 @@
 </div>
 
 <%# ── FAB ── %>
-<%= link_to new_listing_path,
+<%= link_to new_listing_path(back: params[:filter]),
       class: "fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-700
               active:bg-indigo-800 text-white text-3xl flex items-center justify-center shadow-xl
               transition-all active:scale-95" do %>
