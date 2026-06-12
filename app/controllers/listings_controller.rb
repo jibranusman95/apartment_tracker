@@ -3,8 +3,16 @@ class ListingsController < ApplicationController
 
   CITY_FILTERS = %w[Oakville Burlington Mississauga Milton Hamilton].freeze
 
+  SORT_OPTIONS = {
+    "score"      => Arel.sql("score DESC NULLS LAST"),
+    "rent_asc"   => Arel.sql("rent ASC NULLS LAST"),
+    "rent_desc"  => Arel.sql("rent DESC NULLS LAST"),
+    "drive_time" => Arel.sql("drive_minutes ASC NULLS LAST"),
+    "newest"     => Arel.sql("created_at DESC")
+  }.freeze
+
   def index
-    @listings = Listing.by_score
+    @listings = Listing.all
 
     case params[:filter]
     when "under_2k"        then @listings = @listings.under_2k
@@ -20,6 +28,13 @@ class ListingsController < ApplicationController
     end
 
     @listings = @listings.active unless params[:filter] == "all"
+
+    @listings = @listings.where("rent <= ?", params[:rent_max].to_i)      if params[:rent_max].present?
+    @listings = @listings.where("sqft >= ?", params[:sqft_min].to_i)      if params[:sqft_min].present?
+    @listings = @listings.where("drive_minutes <= ?", params[:drive_max].to_i) if params[:drive_max].present?
+
+    sort_order = SORT_OPTIONS.fetch(params[:sort], SORT_OPTIONS["score"])
+    @listings = @listings.order(sort_order)
 
     @active_cities = CITY_FILTERS.select do |city|
       Listing.active.where("city ILIKE ?", city).exists?

@@ -14,6 +14,7 @@
   </div>
 
   <%# Type filter pills %>
+  <% range_params = params.permit(:sort, :rent_max, :sqft_min, :drive_max).to_h %>
   <div class="px-4 sm:px-6 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
     <% [
          ["All",           nil],
@@ -28,7 +29,7 @@
          ["In-Suite",      "in_suite"],
        ].each do |label, value| %>
       <% active = params[:filter].to_s == value.to_s || (params[:filter].blank? && value.nil?) %>
-      <%= link_to root_path(filter: value),
+      <%= link_to root_path(range_params.merge(filter: value)),
             class: "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
                     #{active ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"}" do %>
         <%= label %>
@@ -38,11 +39,11 @@
 
   <%# City pills %>
   <% if @active_cities.any? %>
-    <div class="px-4 sm:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+    <div class="px-4 sm:px-6 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
       <span class="shrink-0 text-xs text-gray-400 self-center pr-1">📍</span>
       <% @active_cities.each do |city| %>
         <% active = params[:filter] == city %>
-        <%= link_to root_path(filter: city),
+        <%= link_to root_path(range_params.merge(filter: city)),
               class: "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
                       #{active ? "bg-violet-600 text-white border-violet-600" : "bg-white text-gray-600 border-gray-300 hover:border-violet-400"}" do %>
           <%= city %>
@@ -50,6 +51,59 @@
       <% end %>
     </div>
   <% end %>
+
+  <%# Sort & range filters %>
+  <% active_filters = [params[:rent_max], params[:sqft_min], params[:drive_max]].count(&:present?) %>
+  <details class="px-4 sm:px-6 pb-3" <%= "open" if active_filters > 0 || params[:sort].present? %>>
+    <summary class="text-xs text-gray-500 cursor-pointer select-none inline-flex items-center gap-1.5 py-1">
+      <span>⚙ Sort & Filter</span>
+      <% if active_filters > 0 %>
+        <span class="bg-indigo-600 text-white rounded-full px-1.5 py-0.5 text-xs font-bold leading-none"><%= active_filters %></span>
+      <% end %>
+    </summary>
+    <%= form_with url: root_path, method: :get, class: "mt-2 flex flex-wrap gap-3 items-end" do |f| %>
+      <%= hidden_field_tag :filter, params[:filter] %>
+
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Sort by</label>
+        <%= select_tag :sort,
+              options_for_select([
+                ["Score (default)", "score"],
+                ["Rent: low → high", "rent_asc"],
+                ["Rent: high → low", "rent_desc"],
+                ["Drive time", "drive_time"],
+                ["Newest", "newest"]
+              ], params[:sort].presence || "score"),
+              class: "rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" %>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Max rent ($)</label>
+        <%= number_field_tag :rent_max, params[:rent_max], min: 0, step: 50, placeholder: "e.g. 2100",
+              class: "w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" %>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Min sqft</label>
+        <%= number_field_tag :sqft_min, params[:sqft_min], min: 0, step: 50, placeholder: "e.g. 800",
+              class: "w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" %>
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Max drive (min)</label>
+        <%= number_field_tag :drive_max, params[:drive_max], min: 0, step: 5, placeholder: "e.g. 35",
+              class: "w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" %>
+      </div>
+
+      <div class="flex gap-2 items-end">
+        <%= submit_tag "Apply", class: "rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-3 py-1.5 cursor-pointer transition-colors" %>
+        <% if active_filters > 0 || params[:sort].present? %>
+          <%= link_to "Clear", root_path(filter: params[:filter]),
+                class: "text-sm text-gray-500 hover:text-gray-700 px-2 py-1.5" %>
+        <% end %>
+      </div>
+    <% end %>
+  </details>
 </header>
 
 <%# ── Card grid ── %>

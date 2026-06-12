@@ -32,14 +32,17 @@ Every listing gets:
 
 | Category | Points | Criteria |
 |---|---|---|
-| 💰 Price | 40 | ≤ $2,000 = 40 · $2,001–$2,150 = 25 · $2,151–$2,250 = 10 · > $2,250 = 0 ⚠️ |
-| 🚗 Parking | 25 | Included = 25 · Extra cost = 10 · None = 0 ⚠️ |
-| 🛏 Bedrooms | 15 | 2+ BR = 15 · 1 BR = 8 · Studio = 0 |
-| 📐 Sq. Ft. | 10 | Scaled relative to all listings in the database · null = 5 |
-| 🏡 Balcony | 5 | Yes = 5 |
-| ✨ Amenities | 5 | +2 in-unit laundry · +1 dishwasher · +1 gym/pool · +1 any other |
+| 💰 Price | 30 | ≤ $2,000 = 30 · $2,001–$2,150 = 23 · $2,151–$2,250 = 16 · > $2,250 = 0 ⚠️ |
+| 🛏 Bedrooms | 20 | 2 BR / 2 BR+Den = 20 · 1 BR+Den = 16 · 1 BR = 10 · Studio = 0 |
+| 📐 Sq. Ft. | 20 | Scaled relative to all listings in the database · null = 10 |
+| 🚗 Parking | 10 | Included = 10 · Extra cost = 5 · None = 0 ⚠️ |
+| 🚘 Drive time | 10 | < 20 min = 10 · 20–42 min = 4–9 · > 42 min = 0 ⚠️ |
+| 🧺 Laundry | 5 | In-unit = 5 · Shared/none = 0 |
+| ✨ Amenities | 5 | +2 dishwasher · +2 gym/pool · +1 any other · max 5 |
 
-Score badges are **green ≥ 70 · yellow 50–69 · red < 50**. Listings over $2,250 or without parking are flagged directly on the card.
+Bedrooms are stored as decimals — 1 BR + Den is scored as 1.5–1.7, 2 BR + Den as 2.5–2.7 (higher toward X.7 if the den is spacious or has a window/closet).
+
+Score badges are **green ≥ 70 · yellow 50–69 · red < 50**. Listings over $2,250, without parking, or more than 42 min from work are flagged directly on the card.
 
 ---
 
@@ -54,7 +57,7 @@ Score badges are **green ≥ 70 · yellow 50–69 · red < 50**. Listings over $
 | **Frontend** | Hotwire/Turbo · Tailwind CSS v4 · Stimulus |
 | **Auth** | Shared 4-digit PIN · 7-day session cookie |
 | **Tests** | RSpec · FactoryBot · WebMock · Capybara |
-| **Deploy** | Heroku |
+| **Deploy** | Render |
 
 ---
 
