@@ -35,9 +35,9 @@ class ListingScorer
     if rent <= 2000
       40
     elsif rent <= 2150
-      25
+      33
     elsif rent <= 2250
-      10
+      20
     else
       flags << "OVER HARD LIMIT"
       0
