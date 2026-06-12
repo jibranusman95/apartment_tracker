@@ -9,7 +9,9 @@ class ListingsController < ApplicationController
     case params[:filter]
     when "under_2k"        then @listings = @listings.under_2k
     when "two_br"          then @listings = @listings.two_br
+    when "two_br_den"      then @listings = @listings.two_br_den
     when "one_br"          then @listings = @listings.one_br
+    when "one_br_den"      then @listings = @listings.one_br_den
     when "has_parking"     then @listings = @listings.has_parking
     when "in_suite"        then @listings = @listings.in_suite_laundry
     when "favorited"       then @listings = @listings.favorited
@@ -64,6 +66,11 @@ class ListingsController < ApplicationController
 
   def update
     if @listing.update(listing_update_params)
+      result = ListingScorer.score(@listing)
+      @listing.update_columns(
+        score: result[:score],
+        score_breakdown: result[:breakdown].merge(flags: result[:flags])
+      )
       redirect_to listing_path(@listing, back: params[:back]), notice: "Saved."
     else
       render :edit, status: :unprocessable_entity

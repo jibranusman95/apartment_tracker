@@ -11,12 +11,28 @@ class Listing < ApplicationRecord
   scope :gone,            -> { where(status: "gone") }
   scope :by_score,        -> { order(score: :desc) }
   scope :under_2k,        -> { where("rent <= 2000") }
-  scope :two_br,          -> { where("bedrooms >= 2") }
-  scope :one_br,          -> { where(bedrooms: 1) }
+  scope :two_br,          -> { where("bedrooms >= 2 AND bedrooms < 2.5") }
+  scope :two_br_den,      -> { where("bedrooms >= 2.5 AND bedrooms < 3") }
+  scope :one_br,          -> { where("bedrooms >= 1 AND bedrooms < 1.5") }
+  scope :one_br_den,      -> { where("bedrooms >= 1.5 AND bedrooms < 2") }
   scope :has_parking,     -> { where(parking: true) }
   scope :in_suite_laundry, -> { where(laundry: "in-unit") }
   scope :favorited,       -> { where(favorited: true) }
   scope :ideal,           -> { where("bedrooms >= 2").where(laundry: "in-unit").where(parking: true) }
+
+  def bedrooms_label
+    return nil if bedrooms.nil?
+    beds = bedrooms.to_f
+    base = beds.floor
+    frac = beds - base
+    if frac >= 0.4
+      "#{base} BR + Den"
+    elsif beds == beds.floor
+      "#{base} BR"
+    else
+      "#{beds} BR"
+    end
+  end
 
   def over_budget?
     rent.present? && rent > 2250

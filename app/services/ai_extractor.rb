@@ -9,7 +9,7 @@ class AIExtractor
   USER_PROMPT_TEMPLATE = <<~PROMPT.strip
     Extract the following fields from this rental listing and return as JSON:
     - rent_monthly (integer)
-    - bedrooms (integer)
+    - bedrooms (decimal: use 1.0 for 1 bedroom, 2.0 for 2 bedrooms, etc. For a bedroom + den, use a value between X.5 and X.7 where X is the bedroom count — use X.5 as the baseline and increase toward X.7 if the den is described as spacious, has a window, closet, or other amenities that make it more usable as a room)
     - bathrooms (decimal)
     - sqft (integer or null)
     - parking (boolean)

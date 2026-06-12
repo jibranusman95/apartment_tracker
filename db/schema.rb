@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_132856) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_144734) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,7 +22,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_132856) do
     t.string "available_date"
     t.boolean "balcony"
     t.decimal "bathrooms"
-    t.integer "bedrooms"
+    t.decimal "bedrooms", precision: 3, scale: 1
     t.string "city"
     t.datetime "created_at", null: false
     t.decimal "distance_km"

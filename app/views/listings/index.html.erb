@@ -21,7 +21,9 @@
          ["✨ Ideal",      "ideal"],
          ["Under $2k",     "under_2k"],
          ["1 BR",          "one_br"],
+         ["1 BR + Den",    "one_br_den"],
          ["2 BR",          "two_br"],
+         ["2 BR + Den",    "two_br_den"],
          ["Parking",       "has_parking"],
          ["In-Suite",      "in_suite"],
        ].each do |label, value| %>
@@ -121,7 +123,7 @@
             <div class="flex items-center gap-3 text-xs text-gray-600 mb-2">
               <span><%= listing.parking ? "🚗 Parking" : "🚫 No parking" %></span>
               <% if listing.bedrooms %>
-                <span>🛏 <%= listing.bedrooms %> BR</span>
+                <span>🛏 <%= listing.bedrooms_label %></span>
               <% end %>
               <% if listing.sqft %>
                 <span>📐 <%= number_with_delimiter(listing.sqft) %></span>
