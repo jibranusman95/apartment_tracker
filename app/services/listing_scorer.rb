@@ -1,6 +1,6 @@
 class ListingScorer
   # Returns { score: Integer, breakdown: Hash, flags: Array }
-  # Max points: price 40, bedrooms 20, sqft 20, parking 10, laundry 5, amenities 5 = 100
+  # Max points: price 30, bedrooms 20, sqft 20, parking 10, drive_time 10, laundry 5, amenities 5 = 100
 
   def self.score(listing)
     new(listing).score
@@ -14,12 +14,13 @@ class ListingScorer
     breakdown = {}
     flags = []
 
-    breakdown[:price]     = price_score(flags)
-    breakdown[:bedrooms]  = bedroom_score
-    breakdown[:sqft]      = sqft_score
-    breakdown[:parking]   = parking_score(flags)
-    breakdown[:laundry]   = laundry_score
-    breakdown[:amenities] = amenity_score
+    breakdown[:price]      = price_score(flags)
+    breakdown[:bedrooms]   = bedroom_score
+    breakdown[:sqft]       = sqft_score
+    breakdown[:parking]    = parking_score(flags)
+    breakdown[:drive_time] = drive_time_score(flags)
+    breakdown[:laundry]    = laundry_score
+    breakdown[:amenities]  = amenity_score
 
     total = breakdown.values.sum
 
@@ -33,11 +34,11 @@ class ListingScorer
     return 0 if rent.nil?
 
     if rent <= 2000
-      40
+      30
     elsif rent <= 2150
-      33
+      23
     elsif rent <= 2250
-      20
+      16
     else
       flags << "OVER HARD LIMIT"
       0
@@ -89,6 +90,21 @@ class ListingScorer
       flags << "MISSING MUST-HAVE: No parking"
       0
     else
+      0
+    end
+  end
+
+  def drive_time_score(flags)
+    mins = @listing.drive_minutes
+    return 0 if mins.nil?
+
+    if mins < 20
+      10
+    elsif mins <= 42
+      # linear scale: 42 min → 4 pts, 20 min → 9 pts
+      (4 + ((42 - mins) / 22.0 * 5)).round.clamp(4, 9)
+    else
+      flags << "TOO FAR: #{mins} min drive"
       0
     end
   end
