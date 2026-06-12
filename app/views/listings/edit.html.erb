@@ -1,7 +1,7 @@
 <% content_for :title, "Edit Listing" %>
 
 <header class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-  <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+  <div class="px-4 sm:px-6 py-3 flex items-center gap-3">
     <%= link_to listing_path(@listing), class: "text-indigo-600 font-medium text-sm hover:text-indigo-800" do %>
       ← Back
     <% end %>
@@ -9,7 +9,7 @@
   </div>
 </header>
 
-<div class="px-4 py-6">
+<div class="px-4 sm:px-6 py-6 max-w-2xl mx-auto">
   <%= form_with model: @listing, class: "space-y-5" do |f| %>
 
     <%# Source & URL %>

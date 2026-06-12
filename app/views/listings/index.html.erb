@@ -2,7 +2,7 @@
 
 <%# ── Header ── %>
 <header class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-  <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+  <div class="px-4 sm:px-6 py-3 flex items-center justify-between">
     <h1 class="text-lg font-bold text-gray-900">🏡 Jibran & Elena's Home Hunter</h1>
     <div class="flex items-center gap-2">
       <span class="text-xs text-gray-400"><%= @listings.size %> listing<%= @listings.size == 1 ? "" : "s" %></span>
@@ -13,20 +13,19 @@
     </div>
   </div>
 
-  <%# Filter pills %>
-  <div class="max-w-2xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
-    <% filters = [
-         ["All",           nil,           "all"],
-         ["⭐ Favourites", "favorited",   "favorited"],
-         ["✨ Ideal",      "ideal",       "ideal"],
-         ["Under $2k",     "under_2k",    "under_2k"],
-         ["1 BR",          "one_br",      "one_br"],
-         ["2 BR",          "two_br",      "two_br"],
-         ["Parking",       "has_parking", "has_parking"],
-         ["In-Suite",      "in_suite",    "in_suite"],
-       ] %>
-    <% filters.each do |label, value, key| %>
-      <% active = params[:filter].to_s == key.to_s || (params[:filter].blank? && value.nil?) %>
+  <%# Type filter pills %>
+  <div class="px-4 sm:px-6 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
+    <% [
+         ["All",           nil],
+         ["⭐ Favourites", "favorited"],
+         ["✨ Ideal",      "ideal"],
+         ["Under $2k",     "under_2k"],
+         ["1 BR",          "one_br"],
+         ["2 BR",          "two_br"],
+         ["Parking",       "has_parking"],
+         ["In-Suite",      "in_suite"],
+       ].each do |label, value| %>
+      <% active = params[:filter].to_s == value.to_s || (params[:filter].blank? && value.nil?) %>
       <%= link_to root_path(filter: value),
             class: "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
                     #{active ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"}" do %>
@@ -34,110 +33,122 @@
       <% end %>
     <% end %>
   </div>
-</header>
 
-<%# ── Listing Cards ── %>
-<div class="px-4 pt-4 space-y-3">
-  <% if @listings.empty? %>
-    <div class="text-center py-20 text-gray-400">
-      <div class="text-5xl mb-3">🔍</div>
-      <p class="font-medium">No listings yet</p>
-      <p class="text-sm mt-1">Tap + to add your first one</p>
+  <%# City pills %>
+  <% if @active_cities.any? %>
+    <div class="px-4 sm:px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
+      <span class="shrink-0 text-xs text-gray-400 self-center pr-1">📍</span>
+      <% @active_cities.each do |city| %>
+        <% active = params[:filter] == city %>
+        <%= link_to root_path(filter: city),
+              class: "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium border transition-colors
+                      #{active ? "bg-violet-600 text-white border-violet-600" : "bg-white text-gray-600 border-gray-300 hover:border-violet-400"}" do %>
+          <%= city %>
+        <% end %>
+      <% end %>
     </div>
   <% end %>
+</header>
 
-  <% @listings.each do |listing| %>
-    <div class="relative rounded-2xl bg-white border border-gray-200 shadow-sm transition-all
-                <%= listing.gone? ? "opacity-50" : "hover:shadow-md hover:border-indigo-200" %>">
+<%# ── Card grid ── %>
+<div class="px-4 sm:px-6 pt-4">
+  <% if @listings.empty? %>
+    <div class="text-center py-24 text-gray-400">
+      <div class="text-5xl mb-3">🔍</div>
+      <p class="font-medium">No listings</p>
+      <p class="text-sm mt-1">Try a different filter</p>
+    </div>
+  <% else %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <% @listings.each do |listing| %>
+        <div class="relative rounded-2xl bg-white border border-gray-200 shadow-sm transition-all
+                    <%= listing.gone? ? "opacity-50" : "hover:shadow-md hover:border-indigo-200" %>">
 
-      <%# Full-card link overlay %>
-      <%= link_to listing_path(listing),
-            class: "absolute inset-0 rounded-2xl z-0",
-            aria: { label: listing.neighbourhood.presence || "View listing" } do %><% end %>
+          <%= link_to listing_path(listing),
+                class: "absolute inset-0 rounded-2xl z-0",
+                aria: { label: listing.neighbourhood.presence || "View listing" } do %><% end %>
 
-      <div class="relative z-10 p-4 pointer-events-none">
-        <%# "Gone" overlay badge %>
-        <% if listing.gone? %>
-          <div class="absolute inset-0 rounded-2xl flex items-center justify-center bg-gray-100/60 pointer-events-none">
-            <span class="bg-gray-700 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[-8deg]">GONE</span>
-          </div>
-        <% end %>
-
-        <%# Top row: location + score + favourite %>
-        <div class="flex items-start justify-between gap-2 mb-2">
-          <div class="min-w-0">
-            <p class="font-semibold text-gray-900 leading-tight">
-              <%= listing.neighbourhood.presence || "Unknown area" %>
-            </p>
-            <p class="text-xs text-gray-500"><%= listing.city.presence || "—" %></p>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0 relative z-20 pointer-events-auto">
-            <% if listing.score %>
-              <% color = listing.score_color %>
-              <span class="rounded-full px-2.5 py-1 text-sm font-bold
-                <%= color == "green"  ? "bg-emerald-100 text-emerald-700" :
-                    color == "yellow" ? "bg-amber-100 text-amber-700" :
-                                        "bg-red-100 text-red-700" %>">
-                <%= listing.score %>
-              </span>
+          <div class="relative z-10 p-4 pointer-events-none">
+            <% if listing.gone? %>
+              <div class="absolute inset-0 rounded-2xl flex items-center justify-center bg-gray-100/60 pointer-events-none">
+                <span class="bg-gray-700 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[-8deg]">GONE</span>
+              </div>
             <% end %>
-            <%# Favourite button — z-20 sits above the card link %>
-            <%= button_to toggle_favorite_listing_path(listing), method: :patch,
-                  class: "text-lg leading-none bg-transparent border-0 cursor-pointer p-1 rounded-full hover:bg-gray-100" do %>
-              <%= listing.favorited? ? "⭐" : "☆" %>
+
+            <%# Top row %>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="min-w-0">
+                <p class="font-semibold text-gray-900 leading-tight text-sm truncate">
+                  <%= listing.neighbourhood.presence || "Unknown area" %>
+                </p>
+                <p class="text-xs text-gray-500"><%= listing.city.presence || "—" %></p>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0 relative z-20 pointer-events-auto">
+                <% if listing.score %>
+                  <% color = listing.score_color %>
+                  <span class="rounded-full px-2 py-0.5 text-sm font-bold
+                    <%= color == "green"  ? "bg-emerald-100 text-emerald-700" :
+                        color == "yellow" ? "bg-amber-100 text-amber-700" :
+                                            "bg-red-100 text-red-700" %>">
+                    <%= listing.score %>
+                  </span>
+                <% end %>
+                <%= button_to toggle_favorite_listing_path(listing), method: :patch,
+                      class: "text-lg leading-none bg-transparent border-0 cursor-pointer p-1 rounded-full hover:bg-gray-100" do %>
+                  <%= listing.favorited? ? "⭐" : "☆" %>
+                <% end %>
+              </div>
+            </div>
+
+            <%# Rent %>
+            <div class="flex items-center gap-2 mb-2">
+              <% if listing.rent %>
+                <span class="text-lg font-bold text-gray-900">$<%= number_with_delimiter(listing.rent) %></span>
+                <% case listing.budget_label
+                   when "under_2k" %>
+                  <span class="text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5 font-medium">✓ Under $2k</span>
+                <% when "soft_limit" %>
+                  <span class="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 font-medium">~ Soft Limit</span>
+                <% when "over_budget" %>
+                  <span class="text-xs bg-red-100 text-red-700 rounded-full px-2 py-0.5 font-medium">✗ Over</span>
+                <% end %>
+              <% else %>
+                <span class="text-gray-400 text-sm">Rent unknown</span>
+              <% end %>
+            </div>
+
+            <%# Icon row %>
+            <div class="flex items-center gap-3 text-xs text-gray-600 mb-2">
+              <span><%= listing.parking ? "🚗 Parking" : "🚫 No parking" %></span>
+              <% if listing.bedrooms %>
+                <span>🛏 <%= listing.bedrooms %> BR</span>
+              <% end %>
+              <% if listing.sqft %>
+                <span>📐 <%= number_with_delimiter(listing.sqft) %></span>
+              <% end %>
+            </div>
+
+            <% if listing.distance_label %>
+              <p class="text-xs text-gray-400 mb-2">📍 <%= listing.distance_label %> to work</p>
+            <% end %>
+
+            <% if listing.top_pros.any? %>
+              <div class="flex flex-wrap gap-1">
+                <% listing.top_pros.each do |pro| %>
+                  <span class="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 border border-indigo-100">
+                    <%= pro %>
+                  </span>
+                <% end %>
+              </div>
             <% end %>
           </div>
         </div>
-
-        <%# Rent + key stats %>
-        <div class="flex items-center gap-3 mb-3">
-          <% if listing.rent %>
-            <span class="text-xl font-bold text-gray-900">$<%= number_with_delimiter(listing.rent) %></span>
-            <% case listing.budget_label
-               when "under_2k" %>
-              <span class="text-xs bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5 font-medium">✓ Under $2k</span>
-            <% when "soft_limit" %>
-              <span class="text-xs bg-amber-100 text-amber-700 rounded-full px-2 py-0.5 font-medium">~ Soft Limit</span>
-            <% when "over_budget" %>
-              <span class="text-xs bg-red-100 text-red-700 rounded-full px-2 py-0.5 font-medium">✗ Over Budget</span>
-            <% end %>
-          <% else %>
-            <span class="text-gray-400 text-sm">Rent unknown</span>
-          <% end %>
-        </div>
-
-        <%# Icon row %>
-        <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
-          <span><%= listing.parking ? "🚗 Parking" : "🚫 No parking" %></span>
-          <% if listing.bedrooms %>
-            <span>🛏 <%= listing.bedrooms %> BR</span>
-          <% end %>
-          <% if listing.sqft %>
-            <span>📐 <%= number_with_delimiter(listing.sqft) %> sqft</span>
-          <% end %>
-        </div>
-
-        <%# Distance chip %>
-        <% if listing.distance_label %>
-          <p class="text-xs text-gray-400 mb-2">📍 <%= listing.distance_label %> to work</p>
-        <% end %>
-
-        <%# Top 2 pros %>
-        <% if listing.top_pros.any? %>
-          <div class="flex flex-wrap gap-1.5">
-            <% listing.top_pros.each do |pro| %>
-              <span class="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2.5 py-0.5 border border-indigo-100">
-                <%= pro %>
-              </span>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
+      <% end %>
     </div>
   <% end %>
 </div>
 
-<%# ── Floating Action Button ── %>
+<%# ── FAB ── %>
 <%= link_to new_listing_path,
       class: "fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-700
               active:bg-indigo-800 text-white text-3xl flex items-center justify-center shadow-xl

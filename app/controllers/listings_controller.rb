@@ -1,20 +1,29 @@
 class ListingsController < ApplicationController
   before_action :set_listing, only: %i[show edit update destroy toggle_status toggle_favorite]
 
+  CITY_FILTERS = %w[Oakville Burlington Mississauga Milton Hamilton].freeze
+
   def index
     @listings = Listing.by_score
 
     case params[:filter]
-    when "under_2k"      then @listings = @listings.under_2k
-    when "two_br"        then @listings = @listings.two_br
-    when "one_br"        then @listings = @listings.one_br
-    when "has_parking"   then @listings = @listings.has_parking
-    when "in_suite"      then @listings = @listings.in_suite_laundry
-    when "favorited"     then @listings = @listings.favorited
-    when "ideal"         then @listings = @listings.ideal
+    when "under_2k"        then @listings = @listings.under_2k
+    when "two_br"          then @listings = @listings.two_br
+    when "one_br"          then @listings = @listings.one_br
+    when "has_parking"     then @listings = @listings.has_parking
+    when "in_suite"        then @listings = @listings.in_suite_laundry
+    when "favorited"       then @listings = @listings.favorited
+    when "ideal"           then @listings = @listings.ideal
+    when *CITY_FILTERS     then @listings = @listings.where("city ILIKE ?", params[:filter])
     end
 
     @listings = @listings.active unless params[:filter] == "all"
+
+    @active_cities = CITY_FILTERS.select do |city|
+      Listing.active.where("city ILIKE ?", city).exists?
+    end
+
+    @first_listing = @listings.first
   end
 
   def show
