@@ -12,7 +12,7 @@ You and your partner share a single PIN. Add listings by pasting a URL or copyin
 
 Every listing gets:
 
-- **AI extraction** — rent, bedrooms, bathrooms, sqft, parking, laundry, balcony, pets, utilities, neighbourhood, amenities, red flags, pros, cons, and a 2-sentence honest summary
+- **AI extraction** — rent, bedrooms, bathrooms, sqft, parking, laundry, balcony, pets, utilities, street address, neighbourhood, amenities, red flags, pros, cons, and a 2-sentence honest summary
 - **Source detection** — the site it came from (Kijiji, PadMapper, Facebook Marketplace, etc.) auto-detected from the URL
 - **Weighted score** — 100-point scale with colour-coded badges and a per-category breakdown
 - **Shared notes** — a free-text field that auto-saves as you type, visible to both of you
@@ -53,6 +53,7 @@ Score badges are **green ≥ 70 · yellow 50–69 · red < 50**. Listings over $
 | **Runtime** | Ruby 3.3 · Rails 8.1 |
 | **Database** | PostgreSQL (JSONB for arrays) |
 | **AI** | Google Gemini 2.5 Flash — direct HTTP, no SDK |
+| **Routing** | OpenRouteService + Nominatim (OSM) — real driving distance & time |
 | **HTML scraping** | HTTParty + Nokogiri |
 | **Frontend** | Hotwire/Turbo · Tailwind CSS v4 · Stimulus |
 | **Auth** | Shared 4-digit PIN · 7-day session cookie |
@@ -68,6 +69,7 @@ Score badges are **green ≥ 70 · yellow 50–69 · red < 50**. Listings over $
 - Ruby 3.3+
 - PostgreSQL
 - A [Google Gemini API key](https://aistudio.google.com/app/apikey) (free tier works)
+- An [OpenRouteService API key](https://openrouteservice.org) (free tier works)
 
 ### Setup
 
@@ -78,7 +80,7 @@ cd apartment_tracker
 bundle install
 
 cp .env.example .env
-# Edit .env — set APP_PIN and GEMINI_API_KEY
+# Edit .env — set APP_PIN, GEMINI_API_KEY, and OPENROUTESERVICE_API_KEY
 
 bin/rails db:create db:migrate
 
@@ -93,7 +95,8 @@ Open `http://localhost:3000` and enter your PIN.
 |---|---|
 | `APP_PIN` | 4-digit PIN shared between both users (e.g. `1234`) |
 | `GEMINI_API_KEY` | Your Google Gemini API key |
-| `DATABASE_URL` | Set automatically by Heroku/Railway — override locally if needed |
+| `OPENROUTESERVICE_API_KEY` | Your OpenRouteService API key — used for real driving distance/time |
+| `DATABASE_URL` | Set automatically by Render — override locally if needed |
 
 ---
 
@@ -163,20 +166,18 @@ HTTP calls to Gemini and external listing URLs are fully stubbed via WebMock —
 
 ---
 
-## Deploying to Heroku
+## Deploying to Render
 
-```bash
-heroku create your-app-name
-heroku addons:create heroku-postgresql:essential-0
+Set the following environment variables in the Render dashboard:
 
-heroku config:set APP_PIN=your_pin
-heroku config:set GEMINI_API_KEY=your_gemini_key
-heroku config:set RAILS_MASTER_KEY=$(cat config/master.key)
+| Variable | Value |
+|---|---|
+| `APP_PIN` | Your shared PIN |
+| `GEMINI_API_KEY` | Your Gemini API key |
+| `OPENROUTESERVICE_API_KEY` | Your ORS API key |
+| `RAILS_MASTER_KEY` | Contents of `config/master.key` |
 
-git push heroku main
-```
-
-`bin/release` runs `db:migrate` automatically on every deploy.
+The pre-deploy command runs `bundle exec rails db:migrate` automatically on every deploy.
 
 ---
 
@@ -191,7 +192,9 @@ app/
     listing.rb                 # Validations, scopes, helpers
   services/
     listing_fetcher.rb         # HTTParty + Nokogiri scraper
+    ai_extractor.rb            # Orchestrator — tries Gemini then OpenAI-compatible fallbacks
     gemini_extractor.rb        # Gemini 2.5 Flash API client
+    distance_service.rb        # Real driving distance via Nominatim geocoding + ORS routing
     listing_scorer.rb          # 100-point weighted scoring
     listing_creator.rb         # Orchestrator + source_from_url
   views/
