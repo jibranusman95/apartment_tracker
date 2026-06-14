@@ -22,6 +22,7 @@ class GeminiExtractor
     - balcony (boolean)
     - pets_allowed (boolean)
     - utilities_included (array of strings, e.g. ['heat', 'water'])
+    - street_address (string or null: full street address if explicitly stated in the listing, e.g. "123 Main St". Do not infer or guess — only extract if present)
     - neighbourhood (string)
     - city (string)
     - available_date (string)
@@ -30,8 +31,6 @@ class GeminiExtractor
     - pros (array of exactly 3 top selling points, written as short punchy phrases)
     - cons (array of up to 3 drawbacks, written as short punchy phrases)
     - summary (2 sentences max: honest take on this listing given the criteria of max budget $2250, parking required, preferring 2 bedrooms, bigger is better)
-    - distance_km (decimal or null: estimated driving distance in km from the listing address to 603 Michigan Drive, Oakville, ON. Use your knowledge of the area. If address is too vague, return null)
-    - drive_minutes (integer or null: estimated driving time in minutes from the listing address to 603 Michigan Drive, Oakville, ON under normal traffic conditions)
 
     Listing text: %{text}
   PROMPT

@@ -59,6 +59,7 @@ class ListingCreator
 
     if listing.save
       reschedule_sqft_scores if extraction.success && listing.sqft.present?
+      compute_distance(listing) if extraction.success
       Result.new(success: true, listing: listing)
     else
       Result.new(success: false, error: listing.errors.full_messages.to_sentence)
@@ -111,6 +112,7 @@ class ListingCreator
     listing.balcony            = data["balcony"]
     listing.pets_allowed       = data["pets_allowed"]
     listing.utilities_included = Array(data["utilities_included"])
+    listing.street_address     = data["street_address"]
     listing.neighbourhood      = data["neighbourhood"]
     listing.city               = data["city"]
     listing.available_date     = data["available_date"]
@@ -119,8 +121,19 @@ class ListingCreator
     listing.ai_pros            = Array(data["pros"])
     listing.ai_cons            = Array(data["cons"])
     listing.ai_summary         = data["summary"]
-    listing.distance_km        = data["distance_km"]
-    listing.drive_minutes      = data["drive_minutes"]
+  end
+
+  def compute_distance(listing)
+    result = DistanceService.compute_for(listing)
+    return unless result
+
+    listing.update_columns(distance_km: result.distance_km, drive_minutes: result.drive_minutes)
+
+    score_result = ListingScorer.score(listing)
+    listing.update_columns(
+      score:           score_result[:score],
+      score_breakdown: score_result[:breakdown].merge(flags: score_result[:flags])
+    )
   end
 
   def reschedule_sqft_scores

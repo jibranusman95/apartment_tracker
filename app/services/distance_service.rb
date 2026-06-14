@@ -2,9 +2,10 @@ require "net/http"
 require "json"
 
 class DistanceService
-  BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-  MODELS   = %w[gemini-2.5-flash gemini-3.1-flash-lite gemini-2.5-flash-lite].freeze
-  WORKPLACE = "603 Michigan Drive, Oakville, ON"
+  NOMINATIM_URL    = "https://nominatim.openstreetmap.org/search"
+  ORS_URL          = "https://api.openrouteservice.org/v2/directions/driving-car/json"
+  # 603 Michigan Drive, Oakville, ON — pre-geocoded, no need to hit Nominatim every time
+  WORKPLACE_COORDS = [ -79.738156, 43.3876959 ].freeze
 
   Result = Struct.new(:distance_km, :drive_minutes, keyword_init: true)
 
@@ -13,37 +14,25 @@ class DistanceService
   end
 
   def compute_for(listing)
-    address = [ listing.neighbourhood, listing.city, "ON, Canada" ].compact.join(", ")
-    return nil if address.blank?
-
-    api_key = ENV["GEMINI_API_KEY"]
+    api_key = ENV["OPENROUTESERVICE_API_KEY"]
     return nil if api_key.blank?
 
-    prompt = <<~PROMPT.strip
-      Estimate the driving distance in km and driving time in minutes from "#{address}" to "#{WORKPLACE}".
-      Return JSON only with two fields: distance_km (decimal) and drive_minutes (integer).
-      Use typical road routes in the Greater Toronto Area. If the address is too vague to estimate, return null for both fields.
-    PROMPT
+    address = resolve_address(listing)
+    return nil if address.blank?
 
-    response = nil
-    MODELS.each do |model|
-      r = call_api(api_key, prompt, model)
-      next if [ 429, 503, 500 ].include?(r.code.to_i)
-      response = r
-      break
+    origin = geocode(address)
+    # If neighbourhood-level geocode fails, retry with city only
+    if origin.nil? && listing.street_address.blank? && listing.neighbourhood.present?
+      origin = geocode("#{listing.city}, ON, Canada")
     end
-    return nil unless response&.is_a?(Net::HTTPSuccess)
+    return nil unless origin
 
-    parsed = JSON.parse(response.body)
-    raw = parsed.dig("candidates", 0, "content", "parts", 0, "text").to_s
-    json_text = raw.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
-    data = JSON.parse(json_text)
-
-    return nil if data["distance_km"].nil? && data["drive_minutes"].nil?
+    summary = fetch_route(api_key, origin, WORKPLACE_COORDS)
+    return nil unless summary
 
     Result.new(
-      distance_km:   data["distance_km"]&.to_f&.round(1),
-      drive_minutes: data["drive_minutes"]&.to_i
+      distance_km:   (summary["distance"].to_f / 1000).round(1),
+      drive_minutes: (summary["duration"].to_f / 60).round
     )
   rescue StandardError
     nil
@@ -51,23 +40,52 @@ class DistanceService
 
   private
 
-  def call_api(api_key, prompt, model)
-    uri = URI("#{BASE_URL}/#{model}:generateContent?key=#{api_key}")
+  def resolve_address(listing)
+    if listing.street_address.present?
+      "#{listing.street_address}, #{listing.city}, ON, Canada"
+    else
+      [ listing.neighbourhood, listing.city, "ON, Canada" ].compact.join(", ")
+    end
+  end
 
-    payload = {
-      contents: [ { role: "user", parts: [ { text: prompt } ] } ],
-      generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
-    }
+  # Returns [lon, lat] — ORS expects longitude first
+  def geocode(address)
+    uri = URI(NOMINATIM_URL)
+    uri.query = URI.encode_www_form(q: address, format: "json", limit: 1, countrycodes: "ca")
 
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    http.read_timeout = 15
-    http.open_timeout = 10
+    request = Net::HTTP::Get.new(uri)
+    request["User-Agent"] = "ApartmentTracker/1.0"
+
+    response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, read_timeout: 10) do |http|
+      http.request(request)
+    end
+
+    return nil unless response.is_a?(Net::HTTPSuccess)
+
+    results = JSON.parse(response.body)
+    return nil if results.empty?
+
+    [ results[0]["lon"].to_f, results[0]["lat"].to_f ]
+  rescue StandardError
+    nil
+  end
+
+  def fetch_route(api_key, origin, destination)
+    uri = URI(ORS_URL)
 
     request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request.body = payload.to_json
+    request["Authorization"] = api_key
+    request["Content-Type"]  = "application/json"
+    request.body = { coordinates: [ origin, destination ] }.to_json
 
-    http.request(request)
+    response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, read_timeout: 15) do |http|
+      http.request(request)
+    end
+
+    return nil unless response.is_a?(Net::HTTPSuccess)
+
+    JSON.parse(response.body).dig("routes", 0, "summary")
+  rescue StandardError
+    nil
   end
 end
