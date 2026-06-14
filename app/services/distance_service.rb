@@ -42,7 +42,19 @@ class DistanceService
 
   def resolve_address(listing)
     if listing.street_address.present?
-      "#{listing.street_address}, #{listing.city}, ON, Canada"
+      cleaned = listing.street_address
+        .gsub(/,?\s*(Unit|Apt\.?|Suite|#)\s*[\w-]+/i, "")  # strip unit/apt/# numbers
+        .gsub(/,?\s*[A-Z]\d[A-Z]\s*\d[A-Z]\d/, "")         # strip Canadian postal codes
+        .gsub(/,?\s*Canada\s*$/i, "")                        # strip trailing "Canada"
+        .gsub(/,?\s*ON\s*$/i, "")                            # strip trailing "ON"
+        .strip.gsub(/,\s*$/, "")
+
+      # If city is already in the cleaned address, don't append it again
+      if cleaned.match?(/\b#{Regexp.escape(listing.city.to_s)}\b/i)
+        "#{cleaned}, ON, Canada"
+      else
+        "#{cleaned}, #{listing.city}, ON, Canada"
+      end
     else
       [ listing.neighbourhood, listing.city, "ON, Canada" ].compact.join(", ")
     end
