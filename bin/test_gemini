@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+# Run with: bin/rails runner bin/test_gemini
+
+require "net/http"
+require "json"
+
+API_KEY = ENV["GEMINI_API_KEY"]
+BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+MODELS = %w[
+  gemini-2.5-flash
+  gemini-3.5-flash
+  gemini-3.1-flash-lite
+  gemini-2.5-flash-lite
+  gemini-2.5-flash-preview-tts
+  gemini-3.1-flash-tts
+].freeze
+TEST_PROMPT = 'Return this JSON exactly: {"status": "ok", "model": "working"}'
+
+puts "Testing Gemini models with key: #{API_KEY&.first(10)}...\n\n"
+
+MODELS.each do |model|
+  print "#{model}: "
+
+  uri = URI("#{BASE_URL}/#{model}:generateContent?key=#{API_KEY}")
+  payload = {
+    contents: [ { role: "user", parts: [ { text: TEST_PROMPT } ] } ],
+    generationConfig: { temperature: 0, responseMimeType: "application/json" }
+  }
+
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.read_timeout = 15
+  http.open_timeout = 10
+
+  request = Net::HTTP::Post.new(uri)
+  request["Content-Type"] = "application/json"
+  request.body = payload.to_json
+
+  response = http.request(request)
+  code = response.code.to_i
+
+  if code == 200
+    body = JSON.parse(response.body)
+    text = body.dig("candidates", 0, "content", "parts", 0, "text")
+    puts "✅ OK (#{code}) — response: #{text&.strip}"
+  elsif code == 429
+    puts "❌ RATE LIMITED (429)"
+  elsif code == 503
+    puts "❌ OVERLOADED (503)"
+  else
+    puts "❌ ERROR (#{code}) — #{response.body.truncate(150)}"
+  end
+rescue => e
+  puts "❌ EXCEPTION — #{e.message}"
+end

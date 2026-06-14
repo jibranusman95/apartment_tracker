@@ -1,0 +1,99 @@
+#!/usr/bin/env ruby
+# Tests all configured AI providers and models.
+# Run with: bin/rails runner bin/test_ai_providers
+
+require "net/http"
+require "json"
+
+TEST_PROMPT = 'Return this JSON exactly: {"status": "ok"}'
+RATE_LIMIT_CODES = [ 429, 503, 500 ].freeze
+
+def test_model(label:, url:, api_key:, model:, format: :gemini)
+  print "  #{model}: "
+
+  uri = URI("#{url}#{format == :gemini ? "#{model}:generateContent?key=#{api_key}" : ""}")
+
+  if format == :gemini
+    payload = {
+      contents: [ { role: "user", parts: [ { text: TEST_PROMPT } ] } ],
+      generationConfig: { temperature: 0, responseMimeType: "application/json" }
+    }
+    headers = { "Content-Type" => "application/json" }
+  else
+    payload = {
+      model: model,
+      messages: [ { role: "user", content: TEST_PROMPT } ],
+      temperature: 0,
+      response_format: { type: "json_object" }
+    }
+    headers = { "Content-Type" => "application/json", "Authorization" => "Bearer #{api_key}" }
+  end
+
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.read_timeout = 15
+  http.open_timeout = 10
+
+  request = Net::HTTP::Post.new(uri)
+  headers.each { |k, v| request[k] = v }
+  request.body = payload.to_json
+
+  response = http.request(request)
+  code = response.code.to_i
+
+  if code == 200
+    puts "✅ OK"
+  elsif code == 429
+    puts "❌ RATE LIMITED (429)"
+  elsif RATE_LIMIT_CODES.include?(code)
+    puts "❌ OVERLOADED (#{code})"
+  else
+    body = JSON.parse(response.body) rescue {}
+    msg = body.dig("error", "message")&.truncate(80) || response.body.truncate(80)
+    puts "❌ ERROR (#{code}) — #{msg}"
+  end
+rescue => e
+  puts "❌ EXCEPTION — #{e.message}"
+end
+
+puts "=" * 55
+puts "AI Provider Status Check"
+puts "=" * 55
+
+# ── Gemini ──────────────────────────────────────────────
+gemini_key = ENV["GEMINI_API_KEY"]
+puts "\n🔵 Gemini  (key: #{gemini_key&.first(10)}...)"
+if gemini_key.blank?
+  puts "  ⚠️  GEMINI_API_KEY not set"
+else
+  base = "https://generativelanguage.googleapis.com/v1beta/models/"
+  %w[gemini-2.5-flash gemini-3.1-flash-lite gemini-2.5-flash-lite].each do |model|
+    test_model(label: model, url: base, api_key: gemini_key, model: model, format: :gemini)
+  end
+end
+
+# ── Groq ────────────────────────────────────────────────
+groq_key = ENV["GROQ_API_KEY"]
+puts "\n🟠 Groq  (key: #{groq_key&.first(10) || "not set"})"
+if groq_key.blank?
+  puts "  ⚠️  GROQ_API_KEY not set — sign up at console.groq.com"
+else
+  %w[llama-3.3-70b-versatile meta-llama/llama-4-scout-17b-16e-instruct llama-3.1-8b-instant].each do |model|
+    test_model(label: model, url: "https://api.groq.com/openai/v1/chat/completions",
+               api_key: groq_key, model: model, format: :openai)
+  end
+end
+
+# ── OpenRouter ──────────────────────────────────────────
+or_key = ENV["OPENROUTER_API_KEY"]
+puts "\n🟣 OpenRouter  (key: #{or_key&.first(10) || "not set"})"
+if or_key.blank?
+  puts "  ⚠️  OPENROUTER_API_KEY not set — sign up at openrouter.ai"
+else
+  %w[nvidia/nemotron-3-ultra-550b-a55b:free nex-agi/nex-n2-pro:free google/gemma-4-26b-a4b-it:free nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free].each do |model|
+    test_model(label: model, url: "https://openrouter.ai/api/v1/chat/completions",
+               api_key: or_key, model: model, format: :openai)
+  end
+end
+
+puts "\n" + "=" * 55
