@@ -17,14 +17,7 @@ class DistanceService
     api_key = ENV["OPENROUTESERVICE_API_KEY"]
     return nil if api_key.blank?
 
-    address = resolve_address(listing)
-    return nil if address.blank?
-
-    origin = geocode(address)
-    # If neighbourhood-level geocode fails, retry with city only
-    if origin.nil? && listing.street_address.blank? && listing.neighbourhood.present?
-      origin = geocode("#{listing.city}, ON, Canada")
-    end
+    origin = geocode_with_fallback(listing)
     return nil unless origin
 
     summary = fetch_route(api_key, origin, WORKPLACE_COORDS)
@@ -39,6 +32,30 @@ class DistanceService
   end
 
   private
+
+  def geocode_with_fallback(listing)
+    # 1. Full street address (cleaned)
+    if listing.street_address.present?
+      origin = geocode(resolve_address(listing))
+      return origin if origin
+
+      # 2. Postal code only (good area-level accuracy)
+      postal = listing.street_address.match(/[A-Z]\d[A-Z]\s*\d[A-Z]\d/)&.to_s
+      if postal
+        origin = geocode("#{postal}, #{listing.city}, ON, Canada")
+        return origin if origin
+      end
+    end
+
+    # 3. Neighbourhood + city
+    if listing.neighbourhood.present?
+      origin = geocode("#{listing.neighbourhood}, #{listing.city}, ON, Canada")
+      return origin if origin
+    end
+
+    # 4. City only
+    geocode("#{listing.city}, ON, Canada")
+  end
 
   def resolve_address(listing)
     if listing.street_address.present?
